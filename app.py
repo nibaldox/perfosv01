@@ -28,10 +28,12 @@ sys.path.insert(0, str(Path(__file__).parent))
 from script import (  # noqa: E402
     PHASE_KEYS,
     PHASE_LABELS,
+    PeriodRow,
     Report,
     WeeklyRow,
     WellSummary,
     aggregate,
+    aggregate_by_period,
     build_csv,
     build_markdown,
     parse_all,
@@ -544,6 +546,38 @@ def build_wells_phase_pivot(per_well: list[WellSummary],
     return df_with_total
 
 
+def build_period_df(rows: list[PeriodRow], phases: list[str]) -> pd.DataFrame:
+    """Build a DataFrame for the strict per-period (daily/monthly) tables.
+
+    Columns: the period label, one column per phase, total, and the
+    list of active wells. A TOTAL row at the bottom sums each numeric
+    column. Summing the totals across rows equals ``Σ Perforado`` of
+    the input — i.e. the raw total, *not* the net-advance total from
+    the weekly table.
+    """
+    data = []
+    for r in rows:
+        row = {"Periodo": r.period_label}
+        for p in phases:
+            v = r.phases.get(p, 0.0)
+            row[phase_label(p)] = round(v, 2) if v else None
+        row["Pozo(s) activos"] = ", ".join(r.active_wells) if r.active_wells else None
+        row["Total (m)"] = round(r.total, 2)
+        data.append(row)
+    df = pd.DataFrame(data)
+
+    # Append a TOTAL row that sums each numeric column
+    totals: dict[str, object] = {"Periodo": "**TOTAL**"}
+    for p in phases:
+        col = phase_label(p)
+        vals = [r[col] for r in data if isinstance(r.get(col), (int, float))]
+        totals[col] = round(sum(vals), 2) if vals else None
+    grand = sum(r.total for r in rows)
+    totals["Pozo(s) activos"] = ""
+    totals["Total (m)"] = round(grand, 2)
+    return pd.concat([df, pd.DataFrame([totals])], ignore_index=True)
+
+
 # ---------------------------------------------------------------------------
 # UI
 # ---------------------------------------------------------------------------
@@ -656,6 +690,41 @@ def main() -> None:
         width="stretch",
         hide_index=True,
     )
+
+    # --- Daily / Monthly (strict) -------------------------------------------
+    # Strict per-period aggregation. Unlike the weekly table above — which
+    # uses (Fondo_final − Fondo_inicial) per (pozo, fase) per week, and
+    # therefore "stretches" metres across week/month boundaries when a
+    # well's records straddle them — these tables sum Perforado per
+    # period directly. The row totals therefore equal the raw Σ Perforado
+    # of the input, with no double-counting.
+    st.subheader("📅 Avance diario y mensual (estricto)")
+    st.caption(
+        "Suma literal de `Perforado` por período (sin `Fondo − Inicio`). "
+        "Útil para verificar metros perforados dentro de un mes cuando "
+        "un pozo cruza la frontera mensual — algo que la tabla semanal "
+        "(net-advance) no puede atribuir de forma estricta."
+    )
+    day_rows = aggregate_by_period(filtered, period="day")
+    month_rows = aggregate_by_period(filtered, period="month")
+    ptab1, ptab2 = st.tabs([f"Diario ({len(day_rows)} días)",
+                            f"Mensual ({len(month_rows)} meses)"])
+    with ptab1:
+        if day_rows:
+            st.dataframe(
+                build_period_df(day_rows, filtered_phases),
+                width="stretch", hide_index=True,
+            )
+        else:
+            st.info("No hay actividad en el rango seleccionado.")
+    with ptab2:
+        if month_rows:
+            st.dataframe(
+                build_period_df(month_rows, filtered_phases),
+                width="stretch", hide_index=True,
+            )
+        else:
+            st.info("No hay actividad en el rango seleccionado.")
 
     # --- Charts -------------------------------------------------------------
     st.subheader("📈 Visualizaciones")

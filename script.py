@@ -126,6 +126,25 @@ class WeeklyRow:
 
 
 @dataclass
+class PeriodRow:
+    """A row in the strict per-period (daily / monthly) aggregation.
+
+    Unlike :class:`WeeklyRow`, the metres here are the *literal* sum of
+    ``Perforado`` over the reports that fall in the period. There is no
+    net-advance calculation, so a well that crosses a month boundary has
+    its metres attributed to the period in which each report was issued —
+    not stretched across the boundary. Summing all ``PeriodRow.total``
+    values equals the raw ``Σ Perforado`` of the dataset.
+    """
+
+    period_start: date          # first day of the period (always day=1 for monthly)
+    period_label: str           # e.g. "Marzo 2026" or "11/03/26"
+    phases: dict                # phase_key -> metres
+    active_wells: list          # well labels (deduplicated, no markers)
+    total: float
+
+
+@dataclass
 class WellSummary:
     """Per-well aggregate built from a list of reports. Used by the
     'Resumen por Pozo' table and the per-well charts."""
@@ -714,6 +733,65 @@ def wells_by_phase_meters(reports: list[Report]) -> dict[tuple[str, str], float]
         if r.pozo and (r.avance or 0) > 0:
             matrix[(r.pozo, r.phase)] += r.avance
     return dict(matrix)
+
+
+# ---------------------------------------------------------------------------
+# Strict per-period aggregation (daily / monthly)
+# ---------------------------------------------------------------------------
+
+def aggregate_by_period(
+    reports: list[Report],
+    period: str = "month",
+) -> list[PeriodRow]:
+    """Strict per-period aggregation (no net advance).
+
+    ``period="month"`` groups reports by their calendar month;
+    ``period="day"`` keeps each calendar day as its own row. Empty
+    periods (days or months with no reports) are *not* emitted — only
+    periods that actually had drilling activity appear in the result.
+
+    Each ``PeriodRow.total`` is the literal sum of ``Perforado`` over the
+    reports in that period. Summing all ``total`` values equals
+    ``Σ Perforado`` of the input — i.e. the raw total, without the
+    "stretched-across-the-boundary" effect that ``WeeklyRow`` has when a
+    well crosses a month or week boundary.
+    """
+    if period == "month":
+        def _key(d: date) -> date:
+            return date(d.year, d.month, 1)
+        def _label(d: date) -> str:
+            return f"{MONTH_LABELS[d.month - 1]} {d.year}"
+    elif period == "day":
+        def _key(d: date) -> date:
+            return d
+        def _label(d: date) -> str:
+            return d.strftime("%d/%m/%y")
+    else:
+        raise ValueError(f"period must be 'month' or 'day', got {period!r}")
+
+    bucket: dict[date, dict] = defaultdict(
+        lambda: {"phases": defaultdict(float), "wells": set()}
+    )
+    for r in reports:
+        if (r.avance or 0) <= 0:
+            continue
+        ps = _key(r.report_date)
+        bucket[ps]["phases"][r.phase] += r.avance
+        bucket[ps]["wells"].add((r.pozo, r.shift))
+
+    rows: list[PeriodRow] = []
+    for ps in sorted(bucket):
+        data = bucket[ps]
+        # Deduplicate wells (a well with 3 shifts in the month appears once).
+        unique_wells = sorted({w[0] for w in data["wells"]})
+        rows.append(PeriodRow(
+            period_start=ps,
+            period_label=_label(ps),
+            phases=dict(data["phases"]),
+            active_wells=unique_wells,
+            total=sum(data["phases"].values()),
+        ))
+    return rows
 
 
 # ---------------------------------------------------------------------------
