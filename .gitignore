@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tooling / agent state (local to the developer's machine, not project)
+.atl/
+.skill-registry.cache.json
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Local secrets / output not meant for the repo
+.env
+.env.local
+*.local
+
+# Generated outputs (regenerate with `python3 script.py`)
+# Uncomment the next two lines if you prefer NOT to track them.
+# avance_semanal.csv
+# reporte.md
