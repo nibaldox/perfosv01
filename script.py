@@ -144,6 +144,7 @@ class PeriodRow:
     total: float
 
 
+
 @dataclass
 class WellSummary:
     """Per-well aggregate built from a list of reports. Used by the
