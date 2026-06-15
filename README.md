@@ -26,7 +26,7 @@ automáticamente.
 
 ## Deploy en Streamlit Community Cloud (gratis)
 
-1. Subí el repo a GitHub (público o privado con la app autorizada).
+1. Suba el repositorio a GitHub (público o privado con la app autorizada).
 2. Entrá a https://share.streamlit.io y conectá el repo.
 3. **Main file**: `app.py`.
 4. Deploy. Te da una URL fija tipo `tu-equipo.streamlit.app`.
@@ -63,5 +63,5 @@ python3 script.py --tests    # valida sin levantar la UI
 
 En Community Cloud, los datos del chat **salen a internet** y pasan por
 servidores de Streamlit. Si los reportes contienen información sensible
-(nombres de pozos, geología, metrajes), considerá un deploy on-prem o usá la
+(nombres de pozos, geología, metrajes), considere un deploy on-prem o use la
 app solo localmente.

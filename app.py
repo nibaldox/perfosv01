@@ -555,8 +555,8 @@ def main() -> None:
 
     st.title("⛏️ Resumen Semanal — Perforación")
     st.caption(
-        "Cargá el chat de WhatsApp con los reportes diarios y obtené el avance "
-        "semanal por fase, con tabla, gráficos y exportación."
+        "Cargue el chat de WhatsApp con los reportes diarios y obtenga el "
+        "avance semanal por fase, con tabla, gráficos y exportación."
     )
 
     # --- Sidebar: data source ------------------------------------------------
@@ -578,7 +578,7 @@ def main() -> None:
             text = None
 
     if not text:
-        st.warning("Subí un `.txt` desde la barra lateral para empezar.")
+        st.warning("Cargue un archivo `.txt` o `.zip` desde la barra lateral para empezar.")
         try:
             st.stop()
         except Exception:
@@ -587,7 +587,7 @@ def main() -> None:
     data = load_and_process(text)
     if data is None:
         st.error(
-            "No se pudo parsear ningún reporte del archivo. Verificá que sea "
+            "No se pudo parsear ningún reporte del archivo. Verifique que sea "
             "un chat con bloques `Pozo:` / `Sector:` / `Desde:` / `Hasta:`."
         )
         try:
@@ -623,7 +623,7 @@ def main() -> None:
             date_range = (date_range, date_range)
 
     if not sel_phases or not sel_wells:
-        st.warning("Seleccioná al menos una fase y un pozo.")
+        st.warning("Seleccione al menos una fase y un pozo.")
         try:
             st.stop()
         except Exception:
@@ -631,7 +631,7 @@ def main() -> None:
 
     filtered = filter_reports(reports_all, sel_phases, sel_wells, date_range)
     if not filtered:
-        st.warning("Ningún reporte matchea los filtros. Ajustá los criterios.")
+        st.warning("Ningún reporte coincide con los filtros. Ajuste los criterios.")
         try:
             st.stop()
         except Exception:
@@ -718,7 +718,7 @@ def main() -> None:
         st.subheader("🔍 Detalle por Pozo")
         well_options = [w.pozo for w in well_summaries]
         selected = st.selectbox(
-            "Elegí un pozo para ver su evolución semanal:",
+            "Elija un pozo para ver su evolución semanal:",
             options=well_options,
             index=0,
         )
