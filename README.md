@@ -43,7 +43,11 @@ python3 script.py --tests    # valida sin levantar la UI
 
 ## Features de la UI
 
-- **Carga**: arrastrar `_chat.txt` o usar el archivo local.
+- **Carga flexible**: arrastrar un `.txt` suelto o el `.zip` que entrega
+  WhatsApp Web al exportar un chat (con o sin multimedia). La app extrae
+  automáticamente el `.txt` del ZIP y reporta cuántos archivos multimedia
+  se ignoraron. Si el ZIP tiene varios `.txt`, se queda con el más grande
+  (suele ser el chat).
 - **Filtros**: por fase, por pozo, por rango de fechas (con re-agregación).
 - **KPIs**: metros totales, pozos activos, semanas operativas, reportes.
 - **Tabla semanal**: avance por fase con `–` en celdas vacías.

@@ -11,8 +11,10 @@ from __future__ import annotations
 
 import sys
 import tempfile
+import zipfile
 from collections import defaultdict
 from datetime import date, timedelta
+from io import BytesIO
 from pathlib import Path
 from typing import Optional
 
@@ -78,6 +80,64 @@ def load_and_process(text: Optional[str]) -> Optional[dict]:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _read_uploaded_chat(uploaded) -> tuple[Optional[str], str]:
+    """Extract the chat text from a file uploaded via ``st.file_uploader``.
+
+    Accepts either a plain ``.txt`` (WhatsApp Android export, or WhatsApp Web
+    "without media") or a ``.zip`` (WhatsApp Web "include media" export).
+    Returns ``(text, info)`` where ``text`` is the chat contents and
+    ``info`` is a short human-readable description shown to the user.
+
+    On error, ``text`` is ``None`` and ``info`` is the error message.
+    """
+    name = uploaded.name
+    raw = uploaded.read()
+    if name.lower().endswith(".zip"):
+        try:
+            with zipfile.ZipFile(BytesIO(raw)) as zf:
+                # Find every non-directory .txt entry (top level or nested).
+                txt_members = [
+                    n for n in zf.namelist()
+                    if not n.endswith("/") and n.lower().endswith(".txt")
+                ]
+                if not txt_members:
+                    return None, (
+                        f"📦 El ZIP `{name}` no contiene ningún archivo `.txt`."
+                    )
+                # If several .txt files exist, prefer the largest (the chat
+                # is almost always the biggest one — README files etc. are
+                # tiny). Stable tiebreak by name.
+                txt_members.sort(
+                    key=lambda n: (-zf.getinfo(n).file_size, n)
+                )
+                chosen = txt_members[0]
+                extra_txt = (
+                    f" — se ignoraron {len(txt_members) - 1} .txt adicionales"
+                    if len(txt_members) > 1 else ""
+                )
+                with zf.open(chosen) as fh:
+                    text = fh.read().decode("utf-8", errors="replace")
+                media_count = sum(
+                    1 for n in zf.namelist()
+                    if not n.endswith("/") and not n.lower().endswith(".txt")
+                )
+                media_info = (
+                    f", {media_count} archivos multimedia ignorados"
+                    if media_count else ""
+                )
+                return text, (
+                    f"📦 ZIP `{name}` → `{chosen}` "
+                    f"({len(text):,} chars{media_info}){extra_txt}"
+                )
+        except zipfile.BadZipFile:
+            return None, f"El archivo `{name}` no es un ZIP válido."
+        except Exception as exc:  # pragma: no cover — defensive
+            return None, f"No se pudo leer el ZIP `{name}`: {exc}"
+    # Plain text fallback.
+    text = raw.decode("utf-8", errors="replace")
+    return text, f"📄 `{name}` ({len(text):,} chars)"
+
 
 def filter_reports(
     reports: list[Report],
@@ -502,11 +562,18 @@ def main() -> None:
     # --- Sidebar: data source ------------------------------------------------
     with st.sidebar:
         st.header("📂 Datos")
-        uploaded = st.file_uploader("Archivo _chat.txt", type=["txt"])
+        uploaded = st.file_uploader(
+            "Archivo _chat.txt o .zip de WhatsApp",
+            type=["txt", "zip"],
+        )
 
         if uploaded is not None:
-            text = uploaded.read().decode("utf-8", errors="replace")
-            st.success(f"Archivo subido: {uploaded.name}")
+            text, info = _read_uploaded_chat(uploaded)
+            if text is None:
+                st.error(info)
+                text = None
+            else:
+                st.success(info)
         else:
             text = None
 
