@@ -33,6 +33,32 @@
   --h0:#1f1c17; --h1:#3c2f1b; --h2:#6e5230; --h3:#a87f44; --h4:#dcb574;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
 }
+/* Corporate theme — Antofagasta Minerals (AMSA) brand palette.
+   Colors sourced from aminerals.cl mainamsa.css (#186170, #0a3a46,
+   #156451, #79bcb6, #b38c00, #9f2c2a, #d9d9d6). */
+[data-theme="amsa"]{
+  --bg:#eef2f2; --surface:#ffffff; --surface-2:#e7ecea;
+  --border:#d9d9d6; --border-strong:#b7c0bf;
+  --text:#0a3a46; --text-2:#44605d; --text-3:#7b9290;
+  --accent:#186170; --accent-2:#0a3a46; --accent-soft:#e0eded;
+  --danger:#9f2c2a; --danger-soft:#f4e6e6; --warn:#b38c00; --warn-soft:#f5eedb;
+  --ok:#156451; --ok-soft:#dfeae5;
+  --h0:#e6eaea; --h1:#bcd9d5; --h2:#79bcb6; --h3:#2f8c84; --h4:#186170;
+  --shadow:0 1px 2px rgba(10,58,70,.06),0 4px 16px rgba(10,58,70,.06);
+  --radius:14px; --radius-sm:9px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+[data-theme="amsa-dark"]{
+  --bg:#062a31; --surface:#0c3a44; --surface-2:#114550;
+  --border:#1d5863; --border-strong:#2e717e;
+  --text:#e9f1f1; --text-2:#a0c2be; --text-3:#6f918d;
+  --accent:#79bcb6; --accent-2:#186170; --accent-soft:#123a44;
+  --danger:#e08a87; --danger-soft:#341c1c; --warn:#e0b55a; --warn-soft:#332c12;
+  --ok:#5fbf9e; --ok-soft:#123a2c;
+  --h0:#123a44; --h1:#1f5e54; --h2:#3a8a7e; --h3:#6cc4a8; --h4:#bff0e0;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{font-family:var(--font);background:var(--bg);color:var(--text);
@@ -66,6 +92,7 @@ header.app{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--s
 .note .ni .icn{width:15px;height:15px}
 .sortind .icn{width:9px;height:9px}
 .wp-ok .icn{width:12px;height:12px}
+.tdot{width:12px;height:12px;border-radius:50%;background:var(--accent);border:1px solid var(--border-strong);flex-shrink:0}
 
 /* ---------- Layout ---------- */
 main{max-width:1320px;margin:0 auto;padding:24px}
@@ -226,7 +253,7 @@ footer.app{max-width:1320px;margin:0 auto;padding:0 24px 40px;color:var(--text-3
       <button class="btn" id="btnUpload"><svg class="icn" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg> Cargar chat</button>
       <button class="btn" id="btnCsv" disabled><svg class="icn" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> CSV</button>
       <button class="btn" id="btnMd" disabled><svg class="icn" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> Markdown</button>
-      <button class="btn icon" id="btnTheme" title="Cambiar tema"></button>
+      <button class="btn" id="btnTheme" title="Cambiar tema"><span class="tdot"></span><span id="themeLabel">Claro</span></button>
     </div>
   </div>
 </header>
@@ -389,9 +416,17 @@ const PHASE_LIGHT={
 const PHASE_DARK={
   FASE_8:"#c9ccd1",FASE_8S:"#d8a165",FASE_9:"#9aa0a8",FASE_12:"#b0a284",
   FASE_13:"#b3aca2",FASE_14:"#cf8a5e",FASE_15:"#c4a574"};
+// AMSA corporate: teal + gold + copper, from aminerals.cl brand palette.
+const PHASE_AMSA={
+  FASE_8:"#156451",FASE_8S:"#79bcb6",FASE_9:"#c89900",FASE_12:"#186170",
+  FASE_13:"#b38c00",FASE_14:"#0a3a46",FASE_15:"#9f2c2a"};
+const PHASE_AMSA_DARK={
+  FASE_8:"#6fc89a",FASE_8S:"#c9e8e3",FASE_9:"#efd089",FASE_12:"#6cc4d2",
+  FASE_13:"#e0b55a",FASE_14:"#9fd0d8",FASE_15:"#e08a87"};
 function phaseColor(k){
-  const dark=document.documentElement.getAttribute("data-theme")==="dark";
-  return (dark?PHASE_DARK:PHASE_LIGHT)[k]||(dark?"#837b70":"#9a9288");
+  const t=document.documentElement.getAttribute("data-theme");
+  const pal=t==="amsa"?PHASE_AMSA:t==="amsa-dark"?PHASE_AMSA_DARK:t==="dark"?PHASE_DARK:PHASE_LIGHT;
+  return pal[k]||((t==="dark"||t==="amsa-dark")?"#837b70":"#9a9288");
 }
 
 // Inline SVG icons (stroke=currentColor → inherit theme color).
@@ -1456,18 +1491,27 @@ function exportData(){
 /* ==========================================================================
    WIRING
    ========================================================================== */
+const THEMES=[
+  {key:"light",label:"Claro"},
+  {key:"dark",label:"Oscuro"},
+  {key:"amsa",label:"AMSA"},
+  {key:"amsa-dark",label:"AMSA osc."}
+];
+function setTheme(k){
+  document.documentElement.setAttribute("data-theme",k);
+  localStorage.setItem("theme",k);
+  const t=THEMES.find(x=>x.key===k)||THEMES[0];
+  document.getElementById("themeLabel").textContent=t.label;
+  if(!document.getElementById("app").classList.contains("hidden"))render();
+}
 function initTheme(){
-  const saved=localStorage.getItem("theme")|| (matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
-  document.documentElement.setAttribute("data-theme",saved);
-  document.getElementById("btnTheme").innerHTML=ic(saved==="dark"?"sun":"moon",18);
+  const saved=localStorage.getItem("theme");
+  setTheme(THEMES.some(t=>t.key===saved)?saved:(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"));
 }
 document.getElementById("btnTheme").onclick=()=>{
-  const cur=document.documentElement.getAttribute("data-theme");
-  const nx=cur==="dark"?"light":"dark";
-  document.documentElement.setAttribute("data-theme",nx);
-  localStorage.setItem("theme",nx);
-  document.getElementById("btnTheme").innerHTML=ic(nx==="dark"?"sun":"moon",18);
-  if(!document.getElementById("app").classList.contains("hidden"))render();
+  const cur=document.documentElement.getAttribute("data-theme")||"light";
+  const i=THEMES.findIndex(t=>t.key===cur);
+  setTheme(THEMES[(i+1)%THEMES.length].key);
 };
 
 document.getElementById("btnUpload").onclick=()=>document.getElementById("file").click();
