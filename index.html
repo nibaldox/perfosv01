@@ -58,7 +58,14 @@ header.app{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--s
 .btn.primary:hover{filter:brightness(1.08)}
 .btn.icon{padding:8px;width:36px;height:36px;justify-content:center}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.btn .ic{font-size:15px;line-height:1}
+.btn .icn{width:15px;height:15px}
+.icn{flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.logo .icn{width:20px;height:20px;stroke-width:2}
+.empty .big .icn{width:48px;height:48px}
+.dz-ic .icn{width:30px;height:30px}
+.note .ni .icn{width:15px;height:15px}
+.sortind .icn{width:9px;height:9px}
+.wp-ok .icn{width:12px;height:12px}
 
 /* ---------- Layout ---------- */
 main{max-width:1320px;margin:0 auto;padding:24px}
@@ -213,24 +220,24 @@ footer.app{max-width:1320px;margin:0 auto;padding:0 24px 40px;color:var(--text-3
 <body>
 <header class="app">
   <div class="header-inner">
-    <div class="brand"><span class="logo">⛏️</span><span>Resumen de Perforación</span></div>
+    <div class="brand"><span class="logo"><svg class="icn" viewBox="0 0 24 24"><path d="M3 9 Q12 3 21 9"/><path d="M12 6 L20 21"/></svg></span><span>Resumen de Perforación</span></div>
     <div class="header-actions">
       <input type="file" id="file" accept=".txt,.zip" class="hidden">
-      <button class="btn" id="btnUpload">📁 Cargar chat</button>
-      <button class="btn" id="btnCsv" disabled>⬇ CSV</button>
-      <button class="btn" id="btnMd" disabled>⬇ Markdown</button>
-      <button class="btn icon" id="btnTheme" title="Cambiar tema">🌙</button>
+      <button class="btn" id="btnUpload"><svg class="icn" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg> Cargar chat</button>
+      <button class="btn" id="btnCsv" disabled><svg class="icn" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> CSV</button>
+      <button class="btn" id="btnMd" disabled><svg class="icn" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> Markdown</button>
+      <button class="btn icon" id="btnTheme" title="Cambiar tema"></button>
     </div>
   </div>
 </header>
 
 <main>
   <div id="emptyState" class="empty">
-    <div class="big">⛏️</div>
+    <div class="big"><svg class="icn" viewBox="0 0 24 24"><path d="M3 9 Q12 3 21 9"/><path d="M12 6 L20 21"/></svg></div>
     <h2>Resumen semanal de perforación</h2>
     <p>Cargá el chat de WhatsApp con los reportes diarios y obtené el avance por fase, tabla, gráficos y validaciones. Los datos se procesan <strong>100% en tu navegador</strong> — nada se sube a internet.</p>
     <div class="dropzone" id="dropzone">
-      <div class="dz-ic">📄</div>
+      <div class="dz-ic"><svg class="icn" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></div>
       <strong>Arrastrá aquí el _chat.txt o .zip</strong>
       <span>o hacé clic para seleccionar · TXT o ZIP de WhatsApp</span>
     </div>
@@ -256,7 +263,7 @@ footer.app{max-width:1320px;margin:0 auto;padding:0 24px 40px;color:var(--text-3
       </div>
       <div class="field">
         <label>&nbsp;</label>
-        <button class="btn" id="btnReset">↺ Limpiar</button>
+        <button class="btn" id="btnReset"><svg class="icn" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg> Limpiar</button>
       </div>
     </div>
 
@@ -385,6 +392,24 @@ const PHASE_DARK={
 function phaseColor(k){
   const dark=document.documentElement.getAttribute("data-theme")==="dark";
   return (dark?PHASE_DARK:PHASE_LIGHT)[k]||(dark?"#837b70":"#9a9288");
+}
+
+// Inline SVG icons (stroke=currentColor → inherit theme color).
+const ICON_PATHS={
+  pickaxe:'<path d="M3 9 Q12 3 21 9"/><path d="M12 6 L20 21"/>',
+  folder:'<path d="M4 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>',
+  download:'<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/>',
+  moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
+  check:'<path d="M5 12l5 5L20 7"/>',
+  warn:'<path d="M12 3 2 20h20z"/><path d="M12 10v4"/><path d="M12 18h.01"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  up:'<path d="M6 15l6-6 6 6"/>',
+  down:'<path d="M6 9l6 6 6-6"/>'
+};
+function ic(name,size){
+  return `<svg class="icn" width="${size||16}" height="${size||16}" viewBox="0 0 24 24">${ICON_PATHS[name]||""}</svg>`;
 }
 
 /* ---- number parsing (parse_number) ---- */
@@ -1018,7 +1043,7 @@ function renderCampaign(sums){
     const done=w.has_finished||w.pct_complete>=0.995;
     const p=Math.round(w.pct_complete*100);
     const col=done?"var(--ok)":"var(--accent)";
-    const tail=done?'<span class="wp-ok">✓</span>':`<span class="wp-rem">${w.remaining.toFixed(0)} m</span>`;
+    const tail=done?`<span class="wp-ok">${ic("check",12)}</span>`:`<span class="wp-rem">${w.remaining.toFixed(0)} m</span>`;
     html+=`<div class="wp ${done?"done":""}">
       <span class="wp-name" data-well="${w.pozo}">${w.pozo}</span>
       <span class="wp-track"><span class="wp-fill" style="width:${p}%;background:${col}"></span></span>
@@ -1158,7 +1183,7 @@ function renderSortableTable(tableId,cols,rows){
   let html="<thead><tr>";
   cols.forEach(c=>{
     const active=st.key===c.key;
-    html+=`<th class="sortable" data-key="${c.key}">${c.label}${active?`<span class="sortind">${st.dir==="asc"?"▲":"▼"}</span>`:""}</th>`;
+    html+=`<th class="sortable" data-key="${c.key}">${c.label}${active?`<span class="sortind">${ic(st.dir==="asc"?"up":"down",9)}</span>`:""}</th>`;
   });
   html+="</tr></thead><tbody>";
   sorted.forEach(row=>{html+="<tr>"+cols.map(c=>`<td>${c.render(row)}</td>`).join("")+"</tr>";});
@@ -1235,15 +1260,15 @@ function renderValidations(reps,rows,issues){
   const body=document.getElementById("validBody");
   let html="";
   if(!state.selfTestAll.length){
-    html+=`<div class="note ok"><span class="ni">✓</span><div><strong>Self-test OK</strong> — Σ(Fases) = Total Semanal y sin pozos solapados.</div></div>`;
+    html+=`<div class="note ok"><span class="ni">${ic("check")}</span><div><strong>Self-test OK</strong> — Σ(Fases) = Total Semanal y sin pozos solapados.</div></div>`;
   }else{
-    state.selfTestAll.forEach(s=>html+=`<div class="note err"><span class="ni">✕</span><div>${esc(s)}</div></div>`);
+    state.selfTestAll.forEach(s=>html+=`<div class="note err"><span class="ni">${ic("x")}</span><div>${esc(s)}</div></div>`);
   }
   if(!issues.length&&!state.warningsAll.length){
-    html+=`<div class="note ok"><span class="ni">✓</span><div>Sin inconsistencias de profundidad.</div></div>`;
+    html+=`<div class="note ok"><span class="ni">${ic("check")}</span><div>Sin inconsistencias de profundidad.</div></div>`;
   }
-  issues.forEach(s=>html+=`<div class="note warn"><span class="ni">⚠</span><div>${esc(s)}</div></div>`);
-  state.warningsAll.forEach(s=>html+=`<div class="note warn"><span class="ni">⚠</span><div>${esc(s)}</div></div>`);
+  issues.forEach(s=>html+=`<div class="note warn"><span class="ni">${ic("warn")}</span><div>${esc(s)}</div></div>`);
+  state.warningsAll.forEach(s=>html+=`<div class="note warn"><span class="ni">${ic("warn")}</span><div>${esc(s)}</div></div>`);
   const stats=`<div class="dim" style="margin-top:14px;font-size:12px">${reps.length} reportes · ${state.failures.length} mensajes no reconocidos · tolerancia ±${TOLERANCE_M} m</div>`;
   body.innerHTML=html+stats;
 }
@@ -1434,14 +1459,14 @@ function exportData(){
 function initTheme(){
   const saved=localStorage.getItem("theme")|| (matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
   document.documentElement.setAttribute("data-theme",saved);
-  document.getElementById("btnTheme").textContent=saved==="dark"?"☀️":"🌙";
+  document.getElementById("btnTheme").innerHTML=ic(saved==="dark"?"sun":"moon",18);
 }
 document.getElementById("btnTheme").onclick=()=>{
   const cur=document.documentElement.getAttribute("data-theme");
   const nx=cur==="dark"?"light":"dark";
   document.documentElement.setAttribute("data-theme",nx);
   localStorage.setItem("theme",nx);
-  document.getElementById("btnTheme").textContent=nx==="dark"?"☀️":"🌙";
+  document.getElementById("btnTheme").innerHTML=ic(nx==="dark"?"sun":"moon",18);
   if(!document.getElementById("app").classList.contains("hidden"))render();
 };
 
