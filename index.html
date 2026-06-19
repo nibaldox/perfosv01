@@ -270,6 +270,14 @@ footer.app{max-width:1320px;margin:0 auto;padding:0 24px 40px;color:var(--text-3
       <div class="tabpane hidden" id="tab-wells">
         <div class="card-body">
           <div class="card-head" style="padding:0 0 14px;border:none;margin:0">
+            <h3>Profundidad vs tiempo</h3>
+            <span class="sub" id="depthSub"></span>
+          </div>
+          <div class="chart" id="depthChart"></div>
+          <div class="legend" id="depthLegend"></div>
+        </div>
+        <div class="card-body" style="border-top:1px solid var(--border)">
+          <div class="card-head" style="padding:0 0 14px;border:none;margin:0">
             <h3>Resumen por pozo</h3>
           </div>
           <div class="tbl-wrap">
@@ -851,10 +859,68 @@ function render(){
   renderLegend("legendBars",present);
   renderWeeklyTable(rows,phases);
   renderCumulative(rows,present);
+  renderDepth(reps,sums);
   renderWellTable(reps,sums);
   renderPivot(reps,phases);
   renderGantt(reps);
   renderValidations(reps,rows,issues);
+}
+
+/* ---- depth vs time curve (per well) ---- */
+function renderDepth(reps,sums){
+  const box=document.getElementById("depthChart");
+  const sub=document.getElementById("depthSub");
+  // well set: selected well (detailed) or top 6 by total_m (overview)
+  const wells=state.wellFilter?[state.wellFilter]
+    :sums.slice().sort((a,b)=>b.total_m-a.total_m).slice(0,6).map(w=>w.pozo);
+  sub.textContent=state.wellFilter?("detalle: "+state.wellFilter):("top "+wells.length+" pozos por metros");
+  const byWell=new Map();
+  for(const r of reps){if(r.fondo===null)continue;if(!byWell.has(r.pozo))byWell.set(r.pozo,[]);byWell.get(r.pozo).push(r);}
+  const series=[];
+  for(const w of wells){
+    const wr=(byWell.get(w)||[]).slice().sort((a,b)=>a.report_date-b.report_date);
+    if(!wr.length)continue;
+    const sum=sums.find(s=>s.pozo===w);
+    series.push({pozo:w,color:sum?phaseColor(sum.phases[sum.phases.length-1]):COLOR_FALLBACK,
+      points:wr,programado:sum?sum.programado:0});
+  }
+  if(!series.length){box.innerHTML="";document.getElementById("depthLegend").innerHTML="";return;}
+  const allDates=series.flatMap(s=>s.points.map(p=>p.report_date.getTime()));
+  const allFondos=series.flatMap(s=>s.points.map(p=>p.fondo));
+  const minD=Math.min(...allDates),maxD=Math.max(...allDates);
+  const span=Math.max(maxD-minD,86400000);
+  const maxF=Math.max(...allFondos,...series.map(s=>s.programado||0),1);
+  const W=760,H=320,ml=50,mr=16,mt=14,mb=40,cw=W-ml-mr,ch=H-mt-mb;
+  const x=t=>ml+cw*((t-minD)/span);
+  const y=v=>mt+ch-ch*(v/maxF);
+  let g=svgEl(W,H);
+  const ticks=5;
+  for(let i=0;i<=ticks;i++){const v=maxF*i/ticks,yy=y(v);
+    g+=`<line class="g" x1="${ml}" y1="${yy.toFixed(1)}" x2="${W-mr}" y2="${yy.toFixed(1)}"/>`;
+    g+=`<text class="ax" x="${ml-6}" y="${(yy+3).toFixed(1)}" text-anchor="end">${Math.round(v)}</text>`;}
+  if(series.length===1&&series[0].programado){
+    const s=series[0],yy=y(s.programado);
+    g+=`<line x1="${ml}" y1="${yy.toFixed(1)}" x2="${W-mr}" y2="${yy.toFixed(1)}" stroke="${s.color}" stroke-width="1" stroke-dasharray="5 4" opacity="0.6"/>`;
+    g+=`<text class="ax" x="${W-mr}" y="${(yy-4).toFixed(1)}" text-anchor="end">programado ${s.programado.toFixed(0)} m</text>`;}
+  series.forEach(s=>{
+    let d="";
+    s.points.forEach((p,i)=>{d+=(i===0?"M":"L")+x(p.report_date.getTime()).toFixed(1)+" "+y(p.fondo).toFixed(1)+" ";});
+    g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${series.length===1?2.4:1.8}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s.points.forEach(p=>{
+      const tip=`${s.pozo}<br>${fmtDate(p.report_date)} ${p.shift||""}: ${p.fondo.toFixed(1)} m${p.avance?` (+${p.avance.toFixed(1)})`:""}`;
+      g+=`<circle class="bar" cx="${x(p.report_date.getTime()).toFixed(1)}" cy="${y(p.fondo).toFixed(1)}" r="${series.length===1?3:2.4}" fill="${s.color}" data-t="${tip}"/>`;
+    });
+  });
+  const xt=Math.min(6,Math.ceil(span/86400000));
+  for(let i=0;i<=xt;i++){const dd=new Date(minD+span*i/xt),px=x(dd.getTime());
+    g+=`<line class="g" x1="${px.toFixed(1)}" y1="${mt}" x2="${px.toFixed(1)}" y2="${H-mb}"/>`;
+    g+=`<text class="ax" x="${px.toFixed(1)}" y="${H-mb+16}" text-anchor="middle">${fmtDate(dd)}</text>`;}
+  g+=`<text class="ax" x="${ml}" y="${H-mb+34}">profundidad (fondo) por fecha</text>`;
+  g+="</svg>";
+  box.innerHTML=g;
+  bindTips(box);
+  document.getElementById("depthLegend").innerHTML=series.map(s=>
+    `<div class="li"><span style="display:inline-block;width:14px;height:3px;background:${s.color};vertical-align:middle"></span> ${s.pozo}</div>`).join("");
 }
 
 /* ---- campaign progress card ---- */
