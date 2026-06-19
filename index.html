@@ -155,6 +155,7 @@ table.data th.sortable:hover{color:var(--text)}
 /* ---------- Badges / markers ---------- */
 .mstart{color:var(--ok);font-weight:700}
 .mfin{color:var(--danger);font-weight:700}
+.statusb{display:inline-block;padding:2px 9px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap}
 .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
 
 /* ---------- Charts ---------- */
@@ -1078,26 +1079,38 @@ function renderSortableTable(tableId,cols,rows){
 
 /* ---- well summary table ---- */
 function renderWellTable(reps,sums){
+  const maxT=Math.max(...sums.map(w=>w.last_date?w.last_date.getTime():0));
+  sums.forEach(w=>{
+    const fin=w.has_finished||w.pct_complete>=0.995;
+    const active=!fin&&w.last_date&&(maxT-w.last_date.getTime())<=3*86400000;
+    w._status=fin?"Finalizado":(active?"Activo":"Inactivo");
+  });
   const cols=[
     {key:"pozo",label:"Pozo",render:w=>`<span class="clickable" data-well="${w.pozo}">${w.pozo}</span>`},
+    {key:"_status",label:"Estado",render:w=>statusBadge(w._status)},
     {key:"phases",label:"Fase(s)",value:w=>w.phases.join(" "),render:w=>w.phases.map(p=>`<span class="pill" style="background:${phaseColor(p)}22;color:${phaseColor(p)}">${phaseLabel(p)}</span>`).join(" ")},
     {key:"pct_complete",label:"% compl.",value:w=>w.pct_complete*100,render:w=>w.programado?bar(w.pct_complete):`<span class="dim">–</span>`},
     {key:"remaining",label:"m Rest.",render:w=>w.programado?`<span class="num">${w.remaining.toFixed(1)}</span>`:`<span class="dim">–</span>`},
     {key:"total_m",label:"m Totales",render:w=>`<span class="num">${w.total_m.toFixed(2)}</span>`},
     {key:"avg_m_per_shift",label:"m/turno",render:w=>`<span class="num">${w.avg_m_per_shift.toFixed(1)}</span>`},
+    {key:"last_avance",label:"Últ. avance",value:w=>w.last_avance||0,render:w=>(w.last_avance!==null&&w.last_avance!==undefined)?`<span class="num">${w.last_avance.toFixed(1)}</span>`:`<span class="dim">–</span>`},
     {key:"fondo",label:"Fondo",render:w=>w.fondo?`<span class="num">${w.fondo.toFixed(1)}</span>`:`<span class="dim">–</span>`},
     {key:"programado",label:"Programado",render:w=>w.programado?`<span class="num">${w.programado.toFixed(0)}</span>`:`<span class="dim">–</span>`},
     {key:"inicio",label:"Inicio",render:w=>w.inicio?`<span class="num">${w.inicio.toFixed(1)}</span>`:`<span class="dim">–</span>`},
     {key:"casing_total",label:"Casing",render:w=>w.casing_total?`<span class="num">${w.casing_total.toFixed(1)}</span>`:`<span class="dim">–</span>`},
     {key:"num_shifts",label:"Turnos",render:w=>`<span class="num">${w.num_shifts}</span>`},
     {key:"num_weeks",label:"Semanas",render:w=>`<span class="num">${w.num_weeks}</span>`},
-    {key:"first_date",label:"Desde",value:w=>w.first_date?w.first_date.getTime():0,render:w=>w.first_date?fmtDate(w.first_date):`<span class="dim">–</span>`},
-    {key:"last_date",label:"Hasta",value:w=>w.last_date?w.last_date.getTime():0,render:w=>w.last_date?fmtDate(w.last_date):`<span class="dim">–</span>`},
+    {key:"last_date",label:"Últ. turno",value:w=>w.last_date?w.last_date.getTime():0,render:w=>w.last_date?fmtDate(w.last_date):`<span class="dim">–</span>`},
   ];
   renderSortableTable("wellTable",cols,sums);
   document.getElementById("wellTable").querySelectorAll("[data-well]").forEach(el=>{
     el.onclick=()=>{state.wellFilter=el.dataset.well;document.getElementById("wellSel").value=state.wellFilter;render();};
   });
+}
+function statusBadge(s){
+  const map={Finalizado:["var(--ok)","var(--ok-soft)"],Activo:["var(--accent)","var(--accent-soft)"],Inactivo:["var(--text-3)","var(--surface-2)"]};
+  const[c,bg]=map[s]||map.Inactivo;
+  return `<span class="statusb" style="color:${c};background:${bg}">${s}</span>`;
 }
 function bar(p){  // inline progress bar for table cells (p in 0..1)
   const pct=Math.round(p*100);
