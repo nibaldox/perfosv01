@@ -1012,9 +1012,8 @@ function renderDepth(reps,sums){
     g+=`<line x1="${ml}" y1="${yy.toFixed(1)}" x2="${W-mr}" y2="${yy.toFixed(1)}" stroke="${s.color}" stroke-width="1" stroke-dasharray="5 4" opacity="0.6"/>`;
     g+=`<text class="ax" x="${W-mr}" y="${(yy-4).toFixed(1)}" text-anchor="end">programado ${s.programado.toFixed(0)} m</text>`;}
   series.forEach(s=>{
-    let d="";
-    s.points.forEach((p,i)=>{d+=(i===0?"M":"L")+x(p.report_date.getTime()).toFixed(1)+" "+y(p.fondo).toFixed(1)+" ";});
-    g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${series.length===1?2.4:1.8}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const pts=s.points.map(p=>[x(p.report_date.getTime()),y(p.fondo)]);
+    g+=`<path d="${smoothPath(pts)}" fill="none" stroke="${s.color}" stroke-width="${series.length===1?2.4:1.8}" stroke-linejoin="round" stroke-linecap="round"/>`;
     s.points.forEach(p=>{
       const tip=`${s.pozo}<br>${fmtDate(p.report_date)} ${p.shift||""}: ${p.fondo.toFixed(1)} m${p.avance?` (+${p.avance.toFixed(1)})`:""}`;
       g+=`<circle class="bar" cx="${x(p.report_date.getTime()).toFixed(1)}" cy="${y(p.fondo).toFixed(1)}" r="${series.length===1?3:2.4}" fill="${s.color}" data-t="${tip}"/>`;
@@ -1326,6 +1325,30 @@ document.addEventListener("scroll",hideTip,true);
 
 function svgEl(w,h){return`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" role="img">`;}
 
+// Rounded top corners only (for stacked bars: top segment of each column).
+function roundTopRect(x,y,w,h,r){
+  x=+x;y=+y;w=+w;h=+h;
+  const rr=Math.max(0,Math.min(r,w/2,h/2));
+  if(rr<0.5)return `M${x} ${y} L${x+w} ${y} L${x+w} ${y+h} L${x} ${y+h} Z`;
+  return `M${x} ${(y+rr).toFixed(1)} Q${x} ${y.toFixed(1)} ${(x+rr).toFixed(1)} ${y.toFixed(1)} `+
+    `L${(x+w-rr).toFixed(1)} ${y.toFixed(1)} Q${(x+w).toFixed(1)} ${y.toFixed(1)} ${(x+w).toFixed(1)} ${(y+rr).toFixed(1)} `+
+    `L${(x+w).toFixed(1)} ${(y+h).toFixed(1)} L${x} ${(y+h).toFixed(1)} Z`;
+}
+// Smooth path through points (Catmull-Rom → cubic Bézier). Safe for monotonic series.
+function smoothPath(pts){
+  const n=pts.length;
+  if(n<2)return"";
+  if(n===2)return `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)} L${pts[1][0].toFixed(1)} ${pts[1][1].toFixed(1)}`;
+  let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for(let i=0;i<n-1;i++){
+    const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||pts[i+1];
+    const c1x=p1[0]+(p2[0]-p0[0])/6,c1y=p1[1]+(p2[1]-p0[1])/6;
+    const c2x=p2[0]-(p3[0]-p1[0])/6,c2y=p2[1]-(p3[1]-p1[1])/6;
+    d+=` C${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+
 /* ---- stacked bar by phase (weekly) ---- */
 function renderStacked(rows,phases){
   if(!rows.length){document.getElementById("stackedChart").innerHTML="";return;}
@@ -1341,13 +1364,23 @@ function renderStacked(rows,phases){
     g+=`<text class="ax" x="${ml-6}" y="${y+3}" text-anchor="end">${Math.round(v)}</text>`;
   }
   const bw=Math.min(46,cw/rows.length*0.62),slot=cw/rows.length;
+  const rad=Math.min(bw/2,7);
   rows.forEach((r,i)=>{
-    const x=ml+slot*i+(slot-bw)/2;let y0=mt+ch;
-    phases.forEach(p=>{
-      const v=r.phases[p]||0;if(!v)return;
-      const bh=ch*(v/maxTotal);
-      g+=`<rect class="bar" x="${x.toFixed(1)}" y="${(y0-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" fill="${phaseColor(p)}" data-t="${phaseLabel(p)}: ${v.toFixed(1)} m<br>${r.month_label} S${isoWeek(r.week_start)}"/>`;
-      y0-=bh;
+    const x=ml+slot*i+(slot-bw)/2;
+    // collect non-empty segments bottom→top so we can round only the top one
+    const segs=[];
+    phases.forEach(p=>{const v=r.phases[p]||0;if(v)segs.push({p,v,bh:ch*(v/maxTotal)});});
+    let y0=mt+ch;
+    segs.forEach((seg,idx)=>{
+      const isTop=idx===segs.length-1;
+      const y=y0-seg.bh;
+      const tip=`${phaseLabel(seg.p)}: ${seg.v.toFixed(1)} m<br>${r.month_label} S${isoWeek(r.week_start)}`;
+      if(isTop){
+        g+=`<path class="bar" d="${roundTopRect(x,y,bw,seg.bh,rad)}" fill="${phaseColor(seg.p)}" data-t="${tip}"/>`;
+      }else{
+        g+=`<rect class="bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${seg.bh.toFixed(1)}" fill="${phaseColor(seg.p)}" data-t="${tip}"/>`;
+      }
+      y0=y;
     });
     g+=`<text class="ax" x="${(x+bw/2).toFixed(1)}" y="${H-mb+16}" text-anchor="middle">S${isoWeek(r.week_start)}</text>`;
   });
@@ -1371,8 +1404,8 @@ function renderCumulative(rows,phases){
     g+=`<line class="g" x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}"/><text class="ax" x="${ml-6}" y="${y+3}" text-anchor="end">${Math.round(v)}</text>`;}
   const x=i=>ml+(rows.length<=1?0:cw*i/(rows.length-1));
   series.forEach(s=>{
-    let d="";s.arr.forEach((v,i)=>{const px=x(i),py=mt+ch-ch*(v/maxV);d+=(i===0?"M":"L")+px.toFixed(1)+" "+py.toFixed(1)+" ";});
-    g+=`<path d="${d}" fill="none" stroke="${phaseColor(s.p)}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const pts=s.arr.map((v,i)=>[x(i),mt+ch-ch*(v/maxV)]);
+    g+=`<path d="${smoothPath(pts)}" fill="none" stroke="${phaseColor(s.p)}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
     const last=s.arr[s.arr.length-1];const py=mt+ch-ch*(last/maxV);
     g+=`<circle cx="${x(rows.length-1).toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="${phaseColor(s.p)}" data-t="${phaseLabel(s.p)}: ${last.toFixed(1)} m acum."/>`;
   });
