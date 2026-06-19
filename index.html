@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen de Perforación</title>
+<style>
+/* ========================================================================
+   Design system — modern, minimalist. Light + dark via [data-theme].
+   ======================================================================== */
+:root{
+  --bg:#f7f7f8; --surface:#ffffff; --surface-2:#fafafa;
+  --border:#e7e7ea; --border-strong:#d4d4d8;
+  --text:#18181b; --text-2:#52525b; --text-3:#a1a1aa;
+  --accent:#4f46e5; --accent-soft:#eef2ff;
+  --danger:#dc2626; --danger-soft:#fef2f2; --warn:#b45309; --warn-soft:#fffbeb;
+  --ok:#059669; --ok-soft:#ecfdf5;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);
+  --radius:14px; --radius-sm:9px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+[data-theme="dark"]{
+  --bg:#0c0c0e; --surface:#161618; --surface-2:#1c1c1f;
+  --border:#27272a; --border-strong:#3f3f46;
+  --text:#fafafa; --text-2:#a1a1aa; --text-3:#71717a;
+  --accent:#818cf8; --accent-soft:#1e1b3a;
+  --danger:#f87171; --danger-soft:#2a1212; --warn:#fbbf24; --warn-soft:#2a1f08;
+  --ok:#34d399; --ok-soft:#0a2820;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  transition:background .2s,color .2s}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:6px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
+
+/* ---------- Header ---------- */
+header.app{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--surface) 88%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.header-inner{max-width:1320px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:16px;letter-spacing:-.01em;white-space:nowrap}
+.brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7c3aed);
+  display:grid;place-items:center;color:#fff;font-size:18px;flex-shrink:0}
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border-strong);background:var(--surface);
+  color:var(--text);padding:8px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;font-family:inherit;
+  cursor:pointer;transition:.15s;white-space:nowrap}
+.btn:hover{background:var(--surface-2);border-color:var(--text-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.icon{padding:8px;width:36px;height:36px;justify-content:center}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn .ic{font-size:15px;line-height:1}
+
+/* ---------- Layout ---------- */
+main{max-width:1320px;margin:0 auto;padding:24px}
+.hidden{display:none!important}
+
+/* ---------- Empty state ---------- */
+.empty{max-width:520px;margin:8vh auto;text-align:center;padding:40px}
+.empty .big{font-size:46px;margin-bottom:14px;opacity:.5}
+.empty h2{font-size:20px;margin-bottom:8px;font-weight:600}
+.empty p{color:var(--text-2);margin-bottom:24px;font-size:14px}
+.dropzone{border:2px dashed var(--border-strong);border-radius:var(--radius);padding:40px;cursor:pointer;
+  transition:.18s;background:var(--surface)}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:var(--accent-soft)}
+.dropzone .dz-ic{font-size:30px;margin-bottom:10px}
+.dropzone strong{display:block;margin-bottom:4px}
+.dropzone span{color:var(--text-3);font-size:12px}
+
+/* ---------- Toolbar / filters ---------- */
+.toolbar{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:20px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
+.field select,.field input[type=text],.field input[type=date]{
+  background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;
+  font-size:13px;color:var(--text);font-family:inherit;min-width:120px}
+.field select:focus,.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;max-width:560px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;border:1px solid var(--border);
+  background:var(--surface-2);font-size:12px;cursor:pointer;transition:.13s;user-select:none}
+.chip:hover{border-color:var(--text-3)}
+.chip.on{color:#fff;border-color:transparent;font-weight:500}
+.chip .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ---------- KPIs ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.kpi .label{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.kpi .val{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .sub{font-size:12px;color:var(--text-2);margin-top:3px}
+
+/* ---------- Card / section ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:24px;overflow:hidden}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.card-head h3{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.card-head .sub{font-size:12px;color:var(--text-3);font-weight:400;margin-left:8px}
+.card-body{padding:20px}
+.tabs{display:flex;gap:2px;padding:0 20px;border-bottom:1px solid var(--border)}
+.tab{padding:12px 14px;font-size:13px;font-weight:500;color:var(--text-2);background:none;border:none;cursor:pointer;
+  border-bottom:2px solid transparent;font-family:inherit;transition:.13s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ---------- Table ---------- */
+.tbl-wrap{overflow:auto}
+table.data{border-collapse:collapse;width:100%;font-size:13px}
+table.data th,table.data td{padding:9px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border)}
+table.data th:first-child,table.data td:first-child{text-align:left}
+table.data thead th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);
+  background:var(--surface-2);position:sticky;top:0}
+table.data tbody tr:hover{background:var(--surface-2)}
+table.data tr.total td,table.data tfoot td{font-weight:700;background:var(--surface-2);border-top:2px solid var(--border-strong)}
+table.data td.em,.num{font-variant-numeric:tabular-nums}
+.dim{color:var(--text-3)}
+.clickable{cursor:pointer;color:var(--accent)}
+.clickable:hover{text-decoration:underline}
+table.data th.sortable{cursor:pointer;user-select:none;transition:color .12s}
+table.data th.sortable:hover{color:var(--text)}
+.sortind{margin-left:4px;color:var(--accent);font-size:10px}
+
+/* ---- campaign progress ---- */
+.camp-global{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+.camp-bar{position:relative;flex:1;min-width:240px;height:26px;background:var(--surface-2);
+  border:1px solid var(--border);border-radius:13px;overflow:hidden}
+.camp-fill{height:100%;background:linear-gradient(90deg,var(--accent),#7c3aed);border-radius:13px;transition:width .5s}
+.camp-lbl{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:13px;
+  color:var(--text);text-shadow:0 0 4px var(--surface)}
+.camp-meta{font-size:13px;color:var(--text-2);white-space:nowrap}
+.camp-meta strong{color:var(--text);font-size:15px}
+.camp-wells{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px 22px}
+.wp{display:grid;grid-template-columns:74px 1fr 38px 58px;gap:9px;align-items:center;padding:4px 0;font-size:12px}
+.wp-name{color:var(--accent);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wp-name:hover{text-decoration:underline}
+.wp-track{height:7px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.wp-fill{display:block;height:100%;border-radius:4px;transition:width .4s}
+.wp-pct{font-variant-numeric:tabular-nums;text-align:right;color:var(--text-2)}
+.wp-tail{text-align:right;font-variant-numeric:tabular-nums}
+.wp-rem{color:var(--text-3)}.wp-ok{color:var(--ok);font-weight:700}
+
+/* inline cell bar (table % column) */
+.cellbar{display:inline-flex;align-items:center;position:relative;width:64px;height:16px;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.cellbar-fill{position:absolute;inset:0 auto 0 0;background:var(--accent)}
+.cellbar.done .cellbar-fill{background:var(--ok)}
+.cellbar-lbl{position:relative;font-size:10px;font-weight:600;line-height:14px;text-align:center;width:100%;
+  color:var(--text);text-shadow:0 0 3px var(--surface)}
+
+/* ---------- Badges / markers ---------- */
+.mstart{color:var(--ok);font-weight:700}
+.mfin{color:var(--danger);font-weight:700}
+.pill{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+
+/* ---------- Charts ---------- */
+.chart{width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+text.ax{fill:var(--text-3);font-size:10px;font-family:var(--font)}
+line.g{stroke:var(--border);stroke-width:1}
+.bar{cursor:pointer;transition:opacity .15s}
+.bar:hover{opacity:.82}
+.tip{position:fixed;pointer-events:none;background:var(--text);color:var(--bg);padding:7px 10px;border-radius:7px;
+  font-size:11px;z-index:100;box-shadow:var(--shadow);white-space:nowrap;opacity:0;transition:opacity .1s}
+.tip.show{opacity:1}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}
+.legend .li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2)}
+
+/* ---------- Validations ---------- */
+.note{display:flex;gap:10px;padding:11px 14px;border-radius:9px;font-size:13px;margin-bottom:8px;border:1px solid}
+.note.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent);color:var(--warn)}
+.note.err{background:var(--danger-soft);border-color:color-mix(in srgb,var(--danger) 30%,transparent);color:var(--danger)}
+.note.ok{background:var(--ok-soft);border-color:color-mix(in srgb,var(--ok) 30%,transparent);color:var(--ok)}
+.note .ni{flex-shrink:0}
+
+footer.app{max-width:1320px;margin:0 auto;padding:0 24px 40px;color:var(--text-3);font-size:12px;text-align:center}
+
+@media(max-width:720px){
+  .header-inner{padding:12px 16px}
+  main{padding:16px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .kpi .val{font-size:22px}
+}
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="header-inner">
+    <div class="brand"><span class="logo">⛏️</span><span>Resumen de Perforación</span></div>
+    <div class="header-actions">
+      <input type="file" id="file" accept=".txt,.zip" class="hidden">
+      <button class="btn" id="btnUpload">📁 Cargar chat</button>
+      <button class="btn" id="btnCsv" disabled>⬇ CSV</button>
+      <button class="btn" id="btnMd" disabled>⬇ Markdown</button>
+      <button class="btn icon" id="btnTheme" title="Cambiar tema">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="emptyState" class="empty">
+    <div class="big">⛏️</div>
+    <h2>Resumen semanal de perforación</h2>
+    <p>Cargá el chat de WhatsApp con los reportes diarios y obtené el avance por fase, tabla, gráficos y validaciones. Los datos se procesan <strong>100% en tu navegador</strong> — nada se sube a internet.</p>
+    <div class="dropzone" id="dropzone">
+      <div class="dz-ic">📄</div>
+      <strong>Arrastrá aquí el _chat.txt o .zip</strong>
+      <span>o hacé clic para seleccionar · TXT o ZIP de WhatsApp</span>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="toolbar">
+      <div class="field">
+        <label>Fases</label>
+        <div class="chips" id="phaseChips"></div>
+      </div>
+      <div class="field">
+        <label>Pozo</label>
+        <select id="wellSel"><option value="">Todos</option></select>
+      </div>
+      <div class="field">
+        <label>Desde</label>
+        <input type="date" id="dateFrom">
+      </div>
+      <div class="field">
+        <label>Hasta</label>
+        <input type="date" id="dateTo">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn" id="btnReset">↺ Limpiar</button>
+      </div>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="card">
+      <div class="card-head"><h3>Avance de la campaña</h3><span class="sub">% = fondo alcanzado / profundidad programada</span></div>
+      <div class="card-body" id="campaignBody"></div>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="weekly">Semanal</button>
+        <button class="tab" data-tab="wells">Pozos</button>
+        <button class="tab" data-tab="validations">Validaciones</button>
+      </div>
+
+      <!-- Weekly -->
+      <div class="tabpane" id="tab-weekly">
+        <div class="card-body">
+          <div class="chart" id="stackedChart"></div>
+          <div class="legend" id="legendBars"></div>
+        </div>
+        <div class="card-body" style="border-top:1px solid var(--border)">
+          <div class="tbl-wrap">
+            <table class="data" id="weeklyTable"></table>
+          </div>
+        </div>
+        <div class="card-body" style="border-top:1px solid var(--border)">
+          <div class="chart" id="cumChart"></div>
+        </div>
+      </div>
+
+      <!-- Wells -->
+      <div class="tabpane hidden" id="tab-wells">
+        <div class="card-body">
+          <div class="card-head" style="padding:0 0 14px;border:none;margin:0">
+            <h3>Resumen por pozo</h3>
+          </div>
+          <div class="tbl-wrap">
+            <table class="data" id="wellTable"></table>
+          </div>
+        </div>
+        <div class="card-body" style="border-top:1px solid var(--border)">
+          <div class="card-head" style="padding:0 0 14px;border:none;margin:0">
+            <h3>Metros por pozo y fase</h3>
+          </div>
+          <div class="tbl-wrap"><table class="data" id="pivotTable"></table></div>
+        </div>
+        <div class="card-body" style="border-top:1px solid var(--border)">
+          <div class="card-head" style="padding:0 0 14px;border:none;margin:0">
+            <h3>Línea de tiempo (Gantt)</h3>
+          </div>
+          <div class="chart" id="ganttChart"></div>
+          <div class="legend" id="legendGantt"></div>
+        </div>
+      </div>
+
+      <!-- Validations -->
+      <div class="tabpane hidden" id="tab-validations">
+        <div class="card-body" id="validBody"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="app">Parser en JS · procesamiento local · los datos no salen de tu equipo</footer>
+<div class="tip" id="tip"></div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   PARSER — faithful port of script.py (stdlib-only). Same regexes, same rules.
+   Do NOT "simplify" without re-checking against python3 script.py --tests.
+   ========================================================================== */
+
+const MONTH_LABELS=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const TOLERANCE_M=0.1;
+
+// Phase column priority; unknown phases are appended sorted.
+const PHASE_KEYS=["FASE_14","FASE_9","FASE_8S","FASE_12","FASE_13","FASE_8","FASE_15"];
+const PHASE_LABELS={
+  FASE_8:"FASE 8",FASE_8S:"FASE 8S",FASE_9:"FASE 9",FASE_12:"FASE 12",
+  FASE_13:"FASE 13",FASE_14:"FASE 14",FASE_15:"FASE 15"
+};
+
+// Keywords that mark a well as finished in that shift (lowercased).
+const FINISH_KEYWORDS=["finaliz","pozo finalizado","desarme","se inicia desarme","traslad",
+  "se entrega en traslado","se entrega en trasl","retira totalidad","sale con dificultad",
+  "movimiento de equipos","pozo en traslado"];
+
+// Muted, color-blind-friendly palette per phase.
+const PHASE_COLORS={
+  FASE_8:"#5b8def",FASE_8S:"#14b8a6",FASE_9:"#f59e0b",FASE_12:"#8b5cf6",
+  FASE_13:"#ec4899",FASE_14:"#10b981",FASE_15:"#ef4444"
+};
+const COLOR_FALLBACK="#94a3b8";
+
+/* ---- number parsing (parse_number) ---- */
+function parseNumber(raw){
+  if(raw===null||raw===undefined)return null;
+  let s=String(raw).trim();
+  if(!s)return null;
+  s=s.replace(/[^\d\s,.\-]+$/,"").trim();       // strip trailing units
+  if(!s)return null;
+  const parts=s.split(/\s+/);
+  if(parts.length>=2&&parts.every(p=>/^\d[\d,.]*$/.test(p))){
+    s=parts[0]+"."+parts.slice(1).join("");      // space decimal: "4 50" -> 4.50
+  }else{
+    s=s.replace(/ /g,"");
+  }
+  if(s.includes(",")&&s.includes(".")){
+    if(s.lastIndexOf(",")>s.lastIndexOf("."))s=s.replace(/\./g,"").replace(",",".");
+    else s=s.replace(/,/g,"");
+  }else if(s.includes(",")){
+    s=s.replace(",",".");
+  }
+  s=s.replace(/[^0-9.\-]/g,"").replace(/\.+$/,"");
+  if(!s||s==="-"||s==="."||s==="-.")return null;
+  // Python's float() is strict: "361..80" raises ValueError -> None.
+  // parseFloat would leniently return 361, so reject multiple dots.
+  if((s.match(/\./g)||[]).length>1)return null;
+  const n=parseFloat(s);
+  return isNaN(n)?null:n;
+}
+
+/* ---- well id normalization ---- */
+function normalizeWellId(raw){
+  if(!raw)return raw;
+  let s=raw.trim().toUpperCase();
+  if(s.includes("/"))s=s.split("/",1)[0].trim();
+  const m=s.match(/^([A-Z]+)[\s\-_]*0*(\d+)(.*)$/);
+  if(m){
+    let suffix=(m[3]||"").replace(/[\s\-_]+/g,"");
+    return m[1]+"-"+String(parseInt(m[2],10)).padStart(2,"0")+(suffix?"-"+suffix:"");
+  }
+  return s.replace(/[\s\-_]+/g,"");
+}
+
+/* ---- phase normalization ---- */
+function normalizePhase(raw){
+  if(!raw)return null;
+  const s=raw.trim();
+  if(!s)return null;
+  const up=s.toUpperCase();
+  if(/^FASE\s+8\s*S(UR)?\b/.test(up))return"FASE_8S";
+  const m=up.match(/^FASE\s+(\d+)/);
+  if(m)return"FASE_"+parseInt(m[1],10);
+  const cleaned=up.trim().replace(/\s+/g,"_");
+  if(cleaned&&cleaned!=="FASE")return cleaned;
+  return null;
+}
+function phaseLabel(k){
+  if(PHASE_LABELS[k])return PHASE_LABELS[k];
+  if(k.startsWith("FASE_"))return"FASE "+k.slice(5);
+  return k.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+}
+function phaseColor(k){return PHASE_COLORS[k]||COLOR_FALLBACK;}
+
+function presentPhases(reports){
+  const found=new Set(reports.map(r=>r.phase));
+  const ordered=PHASE_KEYS.filter(k=>found.has(k));
+  const extras=[...found].filter(k=>!PHASE_KEYS.includes(k)).sort();
+  return ordered.concat(extras);
+}
+
+/* ---- date helpers ---- */
+function makeDate(y,mo,d){return new Date(y,mo-1,d);}              // 1-indexed month
+function isoWeek(d){
+  // ISO-8601 week. Thursday of the week defines the ISO year.
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=(t.getUTCDay()+6)%7;
+  t.setUTCDate(t.getUTCDate()-day+3);                       // this week's Thursday
+  const isoYear=t.getUTCFullYear();
+  const jan4=new Date(Date.UTC(isoYear,0,4));
+  const j4day=(jan4.getUTCDay()+6)%7;
+  const w1Thu=new Date(jan4); w1Thu.setUTCDate(jan4.getUTCDate()-j4day+3); // week-1 Thursday
+  return 1+Math.round((t-w1Thu)/(7*86400000));
+}
+function weekStart(d){const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));x.setHours(0,0,0,0);return x;}
+function monthLabel(d){return MONTH_LABELS[d.getMonth()];}
+function fmtDate(d){const p=n=>String(n).padStart(2,"0");return`${p(d.getDate())}/${p(d.getMonth()+1)}/${String(d.getFullYear()).slice(-2)}`;}
+function fmtDateISO(d){const p=n=>String(n).padStart(2,"0");return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+
+/* ---- chat header parsing (iOS + Android, optional U+200E LRM) ---- */
+const IOS_RE=/^\u200e?\[(\d{1,2})[-/](\d{1,2})[-/](\d{2,4}),\s*(\d{1,2}):(\d{2}):(\d{2})\s*([ap]\.?\s*m\.?)\]\s*(.*)$/;
+const ANDROID_RE=/^\u200e?(\d{1,2})\/(\d{1,2})\/(\d{2,4}),\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*-\s*(.*)$/;
+const BODY_DATE_RE=/informaci[oó]n\s+(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4})/i;
+const SHIFT_RE=/Turno\s+(D[ií]a|Noche)\b/i;
+
+function parseHeader(line){
+  let m=IOS_RE.exec(line);
+  if(m){
+    // groups: 1=d 2=mo 3=y 4=h 5=mi 6=s 7=ampm 8=tail  (m[0]=full match)
+    const yr=m[3].length===2?parseInt(m[3])+2000:parseInt(m[3]);
+    const dt=makeDate(yr,parseInt(m[2]),parseInt(m[1]));if(isNaN(dt))return null;
+    dt.setHours(parseInt(m[4]),parseInt(m[5]),parseInt(m[6]));return[dt,(m[8]||"").trim()];
+  }
+  m=ANDROID_RE.exec(line);
+  if(m){
+    // groups: 1=d 2=mo 3=y 4=h 5=mi 6=s?(optional) 7=tail
+    const yr=m[3].length===2?parseInt(m[3])+2000:parseInt(m[3]);
+    const dt=makeDate(yr,parseInt(m[2]),parseInt(m[1]));if(isNaN(dt))return null;
+    dt.setHours(parseInt(m[4]),parseInt(m[5]),m[6]?parseInt(m[6]):0);return[dt,(m[7]||"").trim()];
+  }
+  return null;
+}
+
+function splitMessages(text){
+  const lines=text.split(/\r?\n/);
+  const msgs=[];let curDt=null,curBody=[];
+  for(const line of lines){
+    const h=parseHeader(line);
+    if(h){
+      if(curDt||curBody.length)msgs.push([curDt,curBody.join("\n").replace(/^\n+|\n+$/g,"")]);
+      curDt=h[0];curBody=h[1]?[h[1]]:[];
+    }else{curBody.push(line);}
+  }
+  if(curDt||curBody.length)msgs.push([curDt,curBody.join("\n").replace(/^\n+|\n+$/g,"")]);
+  return msgs;
+}
+
+/* ---- field patterns (non-greedy field-name part; drill-bit fraction absorb) ---- */
+const BIT=/(?:\s+(?:\d+"?|\d+\s+\d+\/\d+"?))*/.source;
+const FIELD_PATTERNS={
+  equipo:new RegExp("^\\s*E?QUIPO\\b[^\\n:]*?[:;\\-=\\s]+(.+)$","i"),
+  pozo:new RegExp("^\\s*P[OÓ]ZO\\b[^\\n:]*?[:;\\-=\\s]+(.+)$","i"),
+  sector:new RegExp("^\\s*SECTOR\\b[^\\n:]*?[:;\\-=\\s]+(.+)$","i"),
+  inclinacion:new RegExp("^\\s*INCLINACI[OÓ]N\\b[^\\n:]*?[:;\\-=\\s]+(.+)$","i"),
+  azimut:new RegExp("^\\s*AZIMUT\\b[^\\n:]*?[:;\\-=\\s]+(.+)$","i"),
+  programado:new RegExp("^\\s*PROGRAMADO\\b"+BIT+"[^\\n:]*?[:;\\-=\\s]+(.+)$","i"),
+  inicio:new RegExp("^\\s*(?:INICIO\\.?|DESDE)\\b[^\\n:]*?[:;\\-=\\s]+(.+)$","i"),
+  fondo:new RegExp("^\\s*(?:FONDO|HASTA)\\.?\\b"+BIT+"[^\\n:]*?[:;\\-=\\s]+(.+)$","i"),
+  avance:new RegExp("^\\s*(?:AVANCE|PERFORADO)\\b"+BIT+"[^\\n:]*?[:;\\-=\\s]+(.+)$","i"),
+  casing:new RegExp("^\\s*CASING(?:\\s+(?:DE\\s+)?\\d+\"?)?\\b[^\\n:]*?[:;\\-=\\s]+(.+)$","i")
+};
+const OBS_HEADER_RE=/^\s*(?:OBSERVACIONES|OBS\.?)\s*[:\-]?\s*(.*)$/i;
+
+function extractReport(body,msgDt){
+  if(!body)return null;
+  const lines=body.split(/\r?\n/).map(l=>l.replace(/\s+$/,""));
+  const fields={};let obsLines=[],inObs=false;
+  for(const ln of lines){
+    if(!ln.trim()){inObs=false;continue;}
+    const om=OBS_HEADER_RE.exec(ln);
+    if(om){inObs=true;const tail=(om[1]||"").trim();if(tail)obsLines.push(tail);continue;}
+    if(inObs){obsLines.push(ln.trim());continue;}
+    let mk=null,mv=null;
+    for(const key in FIELD_PATTERNS){
+      if(key in fields)continue;
+      const m=FIELD_PATTERNS[key].exec(ln);
+      if(m){mk=key;mv=(m[1]||"").trim();break;}
+    }
+    if(mk)fields[mk]=mv;else obsLines.push(ln.trim());
+  }
+  if(fields.pozo===undefined||fields.sector===undefined)return null;
+  const phase=normalizePhase(fields.sector||"");
+  if(!phase)return null;
+
+  let bodyDate=msgDt?new Date(msgDt.getFullYear(),msgDt.getMonth(),msgDt.getDate()):null;
+  if(!bodyDate||isNaN(bodyDate)){
+    const md=BODY_DATE_RE.exec(lines.join("\n"));
+    if(md){const yr=md[3].length===2?parseInt(md[3])+2000:parseInt(md[3]);
+      bodyDate=makeDate(yr,parseInt(md[2]),parseInt(md[1]));}
+  }
+  if(!bodyDate||isNaN(bodyDate))return null;
+
+  let shift="";
+  const sm=SHIFT_RE.exec(lines.join("\n"));
+  if(sm)shift=/^d/i.test(sm[1])?"Día":"Noche";
+  else if(msgDt)shift=msgDt.getHours()<12?"Noche":"Día";
+
+  return{
+    report_date:bodyDate,shift,equipo:(fields.equipo||"").trim(),
+    pozo:normalizeWellId((fields.pozo||"").trim()),
+    sector_raw:(fields.sector||"").trim(),phase,
+    inclination:fields.inclinacion||null,
+    programado:parseNumber(fields.programado||""),inicio:parseNumber(fields.inicio||""),
+    fondo:parseNumber(fields.fondo||""),avance:parseNumber(fields.avance||""),
+    casing_hwt:parseNumber(fields.casing||""),observaciones:obsLines.join(" ").trim()
+  };
+}
+
+function parseAll(text){
+  const messages=splitMessages(text);
+  const reports=[],failures=[];
+  for(const[dt,body]of messages){
+    const r=extractReport(body,dt);
+    if(r)reports.push(r);
+    else if(body&&/(pozo|equipo|sector)/i.test(body)){
+      failures.push(body.split(/\r?\n/)[0].slice(0,80));
+    }
+  }
+  return[reports,failures];
+}
+
+/* ---- dominant phase (reubicaciones) ---- */
+function dominantPhase(reports){
+  const counts=new Map(),deepest={};
+  reports.forEach((r,i)=>{
+    if(r.avance!==null&&r.avance>0){
+      counts.set(r.phase,(counts.get(r.phase)||0)+1);
+      if(r.fondo!==null&&(deepest[r.phase]===undefined||deepest[r.phase]<r.fondo))deepest[r.phase]=r.fondo;
+    }
+  });
+  if(counts.size===0)return reports[reports.length-1].phase;
+  const top=[...counts.entries()].sort((a,b)=>b[1]-a[1]||(a[0]<b[0]?-1:1));
+  const max=top[0][1];
+  const cand=top.filter(x=>x[1]===max).map(x=>x[0]);
+  if(cand.length===1)return cand[0];
+  cand.sort((a,b)=>{
+    const dd=(deepest[b]||0)-(deepest[a]||0);
+    if(dd!==0)return dd;
+    const la=Math.max(...reports.map((r,i)=>r.phase===a?i:-1));
+    const lb=Math.max(...reports.map((r,i)=>r.phase===b?i:-1));
+    return lb-la;
+  });
+  return cand[0];
+}
+
+/* ---- weekly aggregation ---- */
+function aggregate(reports){
+  const byWeek=new Map();
+  for(const r of reports){
+    const ws=fmtDateISO(weekStart(r.report_date));
+    if(!byWeek.has(ws))byWeek.set(ws,[]);
+    byWeek.get(ws).push(r);
+  }
+  const warnings=[],rows=[];
+  for(const ws of [...byWeek.keys()].sort()){
+    const items=byWeek.get(ws);
+    const byWell=new Map();
+    for(const r of items){if(!byWell.has(r.pozo))byWell.set(r.pozo,[]);byWell.get(r.pozo).push(r);}
+    const phaseTotals={},activeWells=[];
+    for(const[pozo,wr]of byWell){
+      const phasesPresent=new Set(wr.map(r=>r.phase));
+      let canonical;
+      if(phasesPresent.size>1){
+        canonical=dominantPhase(wr);
+        warnings.push(`Semana ${ws}: ${pozo} aparece en fases ${[...phasesPresent].sort().map(phaseLabel)} — asignado a ${phaseLabel(canonical)} (fase dominante).`);
+      }else{canonical=[...phasesPresent][0];}
+      const inicios=wr.map(r=>r.inicio).filter(v=>v!==null);
+      const fondos=wr.map(r=>r.fondo).filter(v=>v!==null);
+      let net;
+      if(inicios.length&&fondos.length)net=Math.max(...fondos)-Math.min(...inicios);
+      else net=wr.reduce((s,r)=>s+(r.avance||0),0);
+      if(net<0)net=wr.reduce((s,r)=>s+(r.avance||0),0);
+      phaseTotals[canonical]=(phaseTotals[canonical]||0)+net;
+      const sumAvance=wr.reduce((s,r)=>s+(r.avance||0),0);
+      if(sumAvance>0&&Math.abs(net-sumAvance)>TOLERANCE_M){
+        const d=net-sumAvance;
+        warnings.push(`Semana ${ws}: ${pozo} en ${phaseLabel(canonical)} — avance neto ${net.toFixed(2)} m vs Σ Perforado ${sumAvance.toFixed(2)} m (Δ ${(d>=0?"+":"")+d.toFixed(2)} m).`);
+      }
+      let started=false,finished=false;
+      for(const r of wr){
+        if(r.inicio===0&&r.fondo===0&&(r.avance||0)===0)started=true;
+        const ol=(r.observaciones||"").toLowerCase();
+        if((r.avance===null||r.avance===0)&&FINISH_KEYWORDS.some(k=>ol.includes(k)))finished=true;
+      }
+      const mark=(started&&finished)?"**":(started?"*":(finished?"**":""));
+      activeWells.push(pozo+mark);
+    }
+    const wsDate=makeDateFromISO(ws);
+    rows.push({week_start:wsDate,month_label:monthLabel(wsDate),phases:phaseTotals,
+      active_wells:activeWells.sort(),total:Object.values(phaseTotals).reduce((a,b)=>a+b,0)});
+  }
+  return[rows,warnings];
+}
+function makeDateFromISO(s){const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);}
+
+/* ---- per-well summary ---- */
+function summarizeWells(reports){
+  const byWell=new Map();
+  for(const r of reports){if(r.pozo){if(!byWell.has(r.pozo))byWell.set(r.pozo,[]);byWell.get(r.pozo).push(r);}}
+  const out=[];
+  for(const[pozo,wr]of byWell){
+    const phases=[...new Set(wr.map(r=>r.phase))].sort();
+    const totalM=wr.reduce((s,r)=>s+(r.avance||0),0);
+    const inicios=wr.map(r=>r.inicio).filter(v=>v!==null);
+    const fondos=wr.map(r=>r.fondo).filter(v=>v!==null);
+    const casings=wr.map(r=>r.casing_hwt).filter(v=>v!==null);
+    const programados=wr.map(r=>r.programado).filter(v=>v!==null);
+    const dates=wr.map(r=>r.report_date);
+    const weeks=new Set(wr.map(r=>fmtDateISO(weekStart(r.report_date))));
+    const numShifts=wr.length;
+    const numActive=wr.filter(r=>(r.avance||0)>0).length;
+    const hasStarted=wr.some(r=>r.inicio===0&&r.fondo===0&&(r.avance||0)===0);
+    const hasFinished=wr.some(r=>(r.avance===null||r.avance===0)&&FINISH_KEYWORDS.some(k=>(r.observaciones||"").toLowerCase().includes(k)));
+    const fondoMax=fondos.length?Math.max(...fondos):0;
+    const programado=programados.length?Math.max(...programados):0;
+    const sortedByDate=[...wr].sort((a,b)=>a.report_date-b.report_date);
+    const lastR=sortedByDate[sortedByDate.length-1];
+    out.push({pozo,phases,total_m:totalM,
+      inicio:inicios.length?Math.min(...inicios):0,
+      fondo:fondoMax,
+      avg_m_per_shift:numShifts?totalM/numShifts:0,
+      casing_total:casings.length?Math.max(...casings):0,
+      num_shifts:numShifts,num_active_shifts:numActive,num_weeks:weeks.size,
+      first_date:dates.length?new Date(Math.min(...dates)):null,
+      last_date:dates.length?new Date(Math.max(...dates)):null,
+      has_started:hasStarted,has_finished:hasFinished,
+      programado,
+      pct_complete:programado>0?Math.min(fondoMax/programado,1):0,
+      remaining:programado>0?Math.max(programado-fondoMax,0):0,
+      last_avance:lastR?lastR.avance:null,last_shift:lastR?lastR.shift:""});
+  }
+  out.sort((a,b)=>b.total_m-a.total_m);
+  return out;
+}
+
+/* ---- wells x phases pivot (raw per-shift attribution) ---- */
+function wellsByPhaseMeters(reports){
+  const m={};
+  for(const r of reports){if(r.pozo&&(r.avance||0)>0){const k=r.pozo+"\u0001"+r.phase;m[k]=(m[k]||0)+r.avance;}}
+  return m;
+}
+
+/* ---- strict per-period aggregation ---- */
+function aggregateByPeriod(reports,period){
+  const bucket=new Map();
+  for(const r of reports){
+    if((r.avance||0)<=0)continue;
+    let key,label;
+    if(period==="month"){key=fmtDateISO(new Date(r.report_date.getFullYear(),r.report_date.getMonth(),1));label=MONTH_LABELS[r.report_date.getMonth()]+" "+r.report_date.getFullYear();}
+    else{key=fmtDateISO(r.report_date);label=fmtDate(r.report_date);}
+    if(!bucket.has(key))bucket.set(key,{phases:{},wells:new Set(),label});
+    const b=bucket.get(key);b.phases[r.phase]=(b.phases[r.phase]||0)+r.avance;b.wells.add(r.pozo);
+  }
+  const rows=[];
+  for(const key of [...bucket.keys()].sort()){
+    const b=bucket.get(key);
+    rows.push({period_start:makeDateFromISO(key),period_label:b.label,phases:b.phases,
+      active_wells:[...b.wells].sort(),total:Object.values(b.phases).reduce((a,c)=>a+c,0)});
+  }
+  return rows;
+}
+
+/* ---- monthly totals from weekly rows ---- */
+function monthlyTotals(rows){
+  const byMonth=new Map(),firstSeen={};
+  for(const r of rows){
+    const ml=r.month_label;
+    const ws=fmtDateISO(r.week_start);
+    if(!(ml in firstSeen)||ws<firstSeen[ml])firstSeen[ml]=ws;
+    if(!byMonth.has(ml))byMonth.set(ml,{});
+    for(const p in r.phases)byMonth.get(ml)[p]=(byMonth.get(ml)[p]||0)+r.phases[p];
+  }
+  const labels=Object.keys(firstSeen).sort((a,b)=>firstSeen[a]<firstSeen[b]?-1:1);
+  return labels.map(l=>[l,byMonth.get(l),Object.values(byMonth.get(l)).reduce((a,c)=>a+c,0)]);
+}
+
+/* ---- validation + self-test ---- */
+function validateReports(reports){
+  const issues=[];
+  const groups=new Map();
+  for(const r of reports){
+    const k=r.pozo+"\u0001"+fmtDateISO(r.report_date)+"\u0001"+r.shift;
+    if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);
+  }
+  for(const[k,group]of groups){
+    if(group.length>1){
+      const wd=group.filter(r=>r.inicio!==null||r.fondo!==null);
+      let overlap=false;
+      for(let i=0;i<wd.length&&!overlap;i++)for(let j=i+1;j<wd.length;j++){
+        const a=wd[i],b=wd[j];
+        if(a.inicio===null||a.fondo===null||b.inicio===null||b.fondo===null)continue;
+        if(Math.max(a.inicio,b.inicio)<Math.min(a.fondo,b.fondo)-TOLERANCE_M){overlap=true;break;}
+      }
+      if(overlap){const[pozo,dt,sh]=k.split("\u0001");issues.push(`Duplicado: ${pozo} ${dt} turno ${sh} — rangos de profundidad solapados entre ${wd.length} registros`);}
+    }
+    for(const r of group){
+      if(r.inicio!==null&&r.fondo!==null&&r.avance!==null){
+        const delta=(r.fondo-r.inicio)-r.avance;
+        if(Math.abs(delta)>TOLERANCE_M)issues.push(`${r.pozo} ${fmtDate(r.report_date)} ${r.shift}: Fondo−Inicio=${(r.fondo-r.inicio).toFixed(2)} m vs Avance=${r.avance.toFixed(2)} m (Δ ${(delta>=0?"+":"")+delta.toFixed(2)} m)`);
+      }
+    }
+  }
+  return issues;
+}
+function selfTest(reports,rows){
+  const issues=[];
+  for(const row of rows){
+    const ps=Object.values(row.phases).reduce((a,b)=>a+b,0);
+    if(Math.abs(ps-row.total)>0.05)issues.push(`Semana ${fmtDateISO(row.week_start)}: Σ(Fases)=${ps.toFixed(2)} m ≠ Total=${row.total.toFixed(2)} m`);
+  }
+  const groups=new Map();
+  for(const r of reports){const k=r.pozo+"\u0001"+fmtDateISO(r.report_date)+"\u0001"+r.shift;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);}
+  for(const[k,group]of groups){
+    if(group.length<=1)continue;
+    const wd=group.filter(r=>r.inicio!==null&&r.fondo!==null);
+    for(let i=0;i<wd.length;i++)for(let j=i+1;j<wd.length;j++){
+      if(Math.max(wd[i].inicio,wd[j].inicio)<Math.min(wd[i].fondo,wd[j].fondo)-0.05){issues.push(`Pozo duplicado (rangos solapados): ${k.replace(/\u0001/g," ")}`);break;}
+    }
+  }
+  return issues;
+}
+
+/* ==========================================================================
+   STATE + APP
+   ========================================================================== */
+const state={rawText:null,reportsAll:[],failures:[],rowsAll:[],warningsAll:[],issuesAll:[],
+  selfTestAll:[],phasesAll:[],wellSummaries:[],pivotAll:{},
+  activePhases:new Set(),wellFilter:"",dateFrom:null,dateTo:null};
+
+/* ---- ZIP extraction (stored + deflate via DecompressionStream) ---- */
+async function readZip(file){
+  const buf=new Uint8Array(await file.arrayBuffer());
+  // find End of Central Directory
+  let eocd=-1;for(let i=buf.length-22;i>=Math.max(0,buf.length-65557);i--){
+    if(buf[i]===0x50&&buf[i+1]===0x4b&&buf[i+2]===0x05&&buf[i+3]===0x06){eocd=i;break;}}
+  if(eocd<0)throw new Error("ZIP inválido");
+  const dv=new DataView(buf.buffer);
+  const cdCount=dv.getUint16(eocd+10,true),cdOff=dv.getUint32(eocd+16,true);
+  const entries=[];let p=cdOff;
+  for(let i=0;i<cdCount;i++){
+    if(dv.getUint32(p,true)!==0x02014b50)break;
+    const compMethod=dv.getUint16(p+10,true);
+    const compSize=dv.getUint32(p+20,true);
+    const fnLen=dv.getUint16(p+28,true),extraLen=dv.getUint16(p+30,true),comLen=dv.getUint16(p+32,true);
+    const localOff=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(buf.subarray(p+46,p+46+fnLen));
+    entries.push({name,compMethod,compSize,localOff});
+    p+=46+fnLen+extraLen+comLen;
+  }
+  // pick largest .txt
+  const txts=entries.filter(e=>/\.txt$/i.test(e.name));
+  if(!txts.length)throw new Error("El ZIP no contiene archivos .txt");
+  const pick=txts.sort((a,b)=>b.compSize-a.compSize)[0];
+  // read local header to find data start
+  const lh=pick.localOff;
+  const lfnLen=dv.getUint16(lh+26,true),lextraLen=dv.getUint16(lh+28,true);
+  const dataStart=lh+30+lfnLen+lextraLen;
+  const comp=buf.subarray(dataStart,dataStart+pick.compSize);
+  if(pick.compMethod===0){return new TextDecoder("utf-8").decode(comp);}
+  if(pick.compMethod===8){
+    const ds=new DecompressionStream("deflate-raw");
+    const out=new Response(new Blob([comp]).stream().pipeThrough(ds));
+    return await out.text();
+  }
+  throw new Error("Método de compresión no soportado: "+pick.compMethod);
+}
+
+/* ---- load + process ---- */
+async function loadChat(file){
+  let text;
+  try{
+    if(/\.zip$/i.test(file.name)){text=await readZip(file);}
+    else{text=await file.text();}
+  }catch(err){
+    alert("No se pudo leer el archivo: "+(err&&err.message?err.message:err)+"\n\nSi es un .zip, probá extraerlo y subir el _chat.txt directamente.");
+    return;
+  }
+  processChat(text);
+}
+function processChat(text){
+  state.rawText=text;
+  const[reports,failures]=parseAll(text);
+  if(!reports.length){alert("No se parseó ningún reporte. Verificá que sea un chat de WhatsApp con reportes de perforación.");return;}
+  state.reportsAll=reports;state.failures=failures;
+  const[rows,warnings]=aggregate(reports);
+  state.rowsAll=rows;state.warningsAll=warnings;
+  state.issuesAll=validateReports(reports);
+  state.selfTestAll=selfTest(reports,rows);
+  state.phasesAll=presentPhases(reports);
+  state.wellSummaries=summarizeWells(reports);
+  state.pivotAll=wellsByPhaseMeters(reports);
+  state.activePhases=new Set(state.phasesAll);
+  state.wellFilter="";state.dateFrom=null;state.dateTo=null;
+
+  document.getElementById("emptyState").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("btnCsv").disabled=false;
+  document.getElementById("btnMd").disabled=false;
+
+  buildFilters();render();
+}
+
+/* ---- filtering ---- */
+function filteredReports(){
+  return state.reportsAll.filter(r=>{
+    if(state.wellFilter&&r.pozo!==state.wellFilter)return false;
+    if(state.dateFrom&&r.report_date<state.dateFrom)return false;
+    if(state.dateTo&&r.report_date>state.dateTo)return false;
+    if(!state.activePhases.has(r.phase))return false;
+    return true;
+  });
+}
+
+/* ---- filters UI ---- */
+function buildFilters(){
+  const chips=document.getElementById("phaseChips");chips.innerHTML="";
+  state.phasesAll.forEach(p=>{
+    const c=document.createElement("div");c.className="chip on";
+    c.innerHTML=`<span class="dot" style="background:${phaseColor(p)}"></span>${phaseLabel(p)}`;
+    c.onclick=()=>{if(state.activePhases.has(p))state.activePhases.delete(p);else state.activePhases.add(p);
+      c.classList.toggle("on",state.activePhases.has(p));render();};
+    chips.appendChild(c);
+  });
+  const sel=document.getElementById("wellSel");sel.innerHTML='<option value="">Todos</option>';
+  [...new Set(state.reportsAll.map(r=>r.pozo))].sort().forEach(w=>{
+    const o=document.createElement("option");o.value=w;o.textContent=w;sel.appendChild(o);
+  });
+}
+
+/* ---- render orchestration ---- */
+function render(){
+  const reps=filteredReports();
+  const[rows,warnings]=aggregate(reps);
+  const issues=validateReports(reps);
+  const phases=state.phasesAll.filter(p=>state.activePhases.has(p));
+  const present=presentPhases(reps);
+  const sums=summarizeWells(reps);
+  renderCampaign(sums);
+  renderKpis(reps,rows,sums);
+  renderStacked(rows,present);
+  renderLegend("legendBars",present);
+  renderWeeklyTable(rows,phases);
+  renderCumulative(rows,present);
+  renderWellTable(reps,sums);
+  renderPivot(reps,phases);
+  renderGantt(reps);
+  renderValidations(reps,rows,issues);
+}
+
+/* ---- campaign progress card ---- */
+function renderCampaign(sums){
+  const box=document.getElementById("campaignBody");
+  if(!sums.length){box.innerHTML="";return;}
+  const totProg=sums.reduce((s,w)=>s+(w.programado||0),0);
+  const reached=sums.reduce((s,w)=>s+Math.min(w.fondo||0,w.programado||0),0);
+  const pct=totProg>0?reached/totProg*100:0;
+  const finished=sums.filter(w=>w.has_finished||w.pct_complete>=0.995).length;
+  const active=sums.length-finished;
+  let html=`<div class="camp-global">
+    <div class="camp-bar"><div class="camp-fill" style="width:${pct.toFixed(1)}%"></div>
+      <span class="camp-lbl">${Math.round(pct)}%</span></div>
+    <div class="camp-meta">
+      <strong>${reached.toFixed(0)}</strong> / ${totProg.toFixed(0)} m
+      <span class="dim">· ${finished} finalizados · ${active} en curso</span>
+    </div></div>`;
+  // per-well bars, most advanced first
+  const order=sums.slice().sort((a,b)=>b.pct_complete-a.pct_complete);
+  html+='<div class="camp-wells">';
+  for(const w of order){
+    const done=w.has_finished||w.pct_complete>=0.995;
+    const p=Math.round(w.pct_complete*100);
+    const col=done?"var(--ok)":"var(--accent)";
+    const tail=done?'<span class="wp-ok">✓</span>':`<span class="wp-rem">${w.remaining.toFixed(0)} m</span>`;
+    html+=`<div class="wp ${done?"done":""}">
+      <span class="wp-name" data-well="${w.pozo}">${w.pozo}</span>
+      <span class="wp-track"><span class="wp-fill" style="width:${p}%;background:${col}"></span></span>
+      <span class="wp-pct">${p}%</span>
+      <span class="wp-tail">${tail}</span></div>`;
+  }
+  html+="</div>";
+  box.innerHTML=html;
+  box.querySelectorAll("[data-well]").forEach(el=>{
+    el.onclick=()=>{state.wellFilter=el.dataset.well;document.getElementById("wellSel").value=state.wellFilter;render();};
+  });
+}
+
+function renderKpis(reps,rows,sums){
+  const totalM=rows.reduce((s,r)=>s+r.total,0);
+  const wells=new Set(reps.map(r=>r.pozo)).size;
+  const weeks=rows.length;
+  const totProg=sums.reduce((s,w)=>s+(w.programado||0),0);
+  const reached=sums.reduce((s,w)=>s+Math.min(w.fondo||0,w.programado||0),0);
+  const pct=totProg>0?Math.round(reached/totProg*100):0;
+  const finished=sums.filter(w=>w.has_finished||w.pct_complete>=0.995).length;
+  const el=document.getElementById("kpis");
+  el.innerHTML=[
+    kpi("Avance",pct+"%",`${finished}/${sums.length} pozos finalizados`),
+    kpi("Metros totales",totalM.toFixed(2),`${reps.length} reportes`),
+    kpi("Pozos",wells,"activos"),
+    kpi("Semanas",weeks,"operativas"),
+    kpi("Fases",new Set(reps.map(r=>r.phase)).size,"presentes")
+  ].join("");
+}
+function kpi(label,val,sub){return`<div class="kpi"><div class="label">${label}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;}
+
+/* ---- weekly table ---- */
+function renderWeeklyTable(rows,phases){
+  const headers=["Mes - Semana"].concat(phases.map(phaseLabel),["Pozo(s) en ejecución","Total (m)"]);
+  let html="<thead><tr>"+headers.map(h=>`<th>${h}</th>`).join("")+"</tr></thead><tbody>";
+  for(const r of rows){
+    const wk=isoWeek(r.week_start);
+    const cells=[`${r.month_label} - S${String(wk).padStart(2,"0")}`];
+    for(const k of phases){const v=r.phases[k];cells.push(v?v.toFixed(2):`<span class="dim">–</span>`);}
+    cells.push(r.active_wells.length?r.active_wells.map(formatWell).join(" "):`<span class="dim">–</span>`);
+    cells.push(`<span class="num">${r.total.toFixed(2)}</span>`);
+    html+="<tr>"+cells.map(c=>`<td>${c}</td>`).join("")+"</tr>";
+  }
+  // monthly subtotals
+  const mt=monthlyTotals(rows);
+  for(const[label,monthly,total]of mt){
+    const cells=[`<strong>TOTAL ${label.toUpperCase()}</strong>`];
+    for(const k of phases){const v=monthly[k];cells.push(v?v.toFixed(2):`<span class="dim">–</span>`);}
+    cells.push("");cells.push(`<span class="num">${total.toFixed(2)}</span>`);
+    html+='<tr class="total">'+cells.map(c=>`<td>${c}</td>`).join("")+"</tr>";
+  }
+  // grand total
+  const totals={};let grand=0;
+  for(const k of phases){totals[k]=rows.reduce((s,r)=>s+(r.phases[k]||0),0);grand+=totals[k];}
+  let cells=["<strong>TOTAL</strong>"];
+  for(const k of phases)cells.push(totals[k]?`<strong>${totals[k].toFixed(2)}</strong>`:`<span class="dim">–</span>`);
+  cells.push("");cells.push(`<strong class="num">${grand.toFixed(2)}</strong>`);
+  html+='<tr class="total">'+cells.map(c=>`<td>${c}</td>`).join("")+"</tr>";
+  html+="</tbody>";
+  document.getElementById("weeklyTable").innerHTML=html;
+}
+function formatWell(w){
+  let out=w.replace(/\*\*$/,'<span class="mfin">**</span>').replace(/\*$/,'<span class="mstart">*</span>');
+  return out;
+}
+
+/* ---- sortable table helper ---- */
+const sortState={};
+function renderSortableTable(tableId,cols,rows){
+  const st=sortState[tableId]||{};
+  const col=st.key?cols.find(c=>c.key===st.key):null;
+  const sorted=col?rows.slice().sort((a,b)=>{
+    let va=col.value?col.value(a):a[col.key],vb=col.value?col.value(b):b[col.key];
+    const an=(va===null||va===undefined||va===""),bn=(vb===null||vb===undefined||vb==="");
+    if(an&&bn)return 0;if(an)return 1;if(bn)return -1;     // empties last
+    if(typeof va==="number"&&typeof vb==="number")return st.dir==="asc"?va-vb:vb-va;
+    return st.dir==="asc"?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va));
+  }):rows;
+  let html="<thead><tr>";
+  cols.forEach(c=>{
+    const active=st.key===c.key;
+    html+=`<th class="sortable" data-key="${c.key}">${c.label}${active?`<span class="sortind">${st.dir==="asc"?"▲":"▼"}</span>`:""}</th>`;
+  });
+  html+="</tr></thead><tbody>";
+  sorted.forEach(row=>{html+="<tr>"+cols.map(c=>`<td>${c.render(row)}</td>`).join("")+"</tr>";});
+  html+="</tbody>";
+  const el=document.getElementById(tableId);
+  el.innerHTML=html;
+  el.querySelectorAll("th.sortable").forEach(th=>{
+    th.onclick=()=>{
+      const key=th.dataset.key,cur=sortState[tableId]||{};
+      sortState[tableId]=cur.key===key?(cur.dir==="desc"?{key,dir:"asc"}:{}):{key,dir:"desc"};
+      render();
+    };
+  });
+}
+
+/* ---- well summary table ---- */
+function renderWellTable(reps,sums){
+  const cols=[
+    {key:"pozo",label:"Pozo",render:w=>`<span class="clickable" data-well="${w.pozo}">${w.pozo}</span>`},
+    {key:"phases",label:"Fase(s)",value:w=>w.phases.join(" "),render:w=>w.phases.map(p=>`<span class="pill" style="background:${phaseColor(p)}22;color:${phaseColor(p)}">${phaseLabel(p)}</span>`).join(" ")},
+    {key:"pct_complete",label:"% compl.",value:w=>w.pct_complete*100,render:w=>w.programado?bar(w.pct_complete):`<span class="dim">–</span>`},
+    {key:"remaining",label:"m Rest.",render:w=>w.programado?`<span class="num">${w.remaining.toFixed(1)}</span>`:`<span class="dim">–</span>`},
+    {key:"total_m",label:"m Totales",render:w=>`<span class="num">${w.total_m.toFixed(2)}</span>`},
+    {key:"avg_m_per_shift",label:"m/turno",render:w=>`<span class="num">${w.avg_m_per_shift.toFixed(1)}</span>`},
+    {key:"fondo",label:"Fondo",render:w=>w.fondo?`<span class="num">${w.fondo.toFixed(1)}</span>`:`<span class="dim">–</span>`},
+    {key:"programado",label:"Programado",render:w=>w.programado?`<span class="num">${w.programado.toFixed(0)}</span>`:`<span class="dim">–</span>`},
+    {key:"inicio",label:"Inicio",render:w=>w.inicio?`<span class="num">${w.inicio.toFixed(1)}</span>`:`<span class="dim">–</span>`},
+    {key:"casing_total",label:"Casing",render:w=>w.casing_total?`<span class="num">${w.casing_total.toFixed(1)}</span>`:`<span class="dim">–</span>`},
+    {key:"num_shifts",label:"Turnos",render:w=>`<span class="num">${w.num_shifts}</span>`},
+    {key:"num_weeks",label:"Semanas",render:w=>`<span class="num">${w.num_weeks}</span>`},
+    {key:"first_date",label:"Desde",value:w=>w.first_date?w.first_date.getTime():0,render:w=>w.first_date?fmtDate(w.first_date):`<span class="dim">–</span>`},
+    {key:"last_date",label:"Hasta",value:w=>w.last_date?w.last_date.getTime():0,render:w=>w.last_date?fmtDate(w.last_date):`<span class="dim">–</span>`},
+  ];
+  renderSortableTable("wellTable",cols,sums);
+  document.getElementById("wellTable").querySelectorAll("[data-well]").forEach(el=>{
+    el.onclick=()=>{state.wellFilter=el.dataset.well;document.getElementById("wellSel").value=state.wellFilter;render();};
+  });
+}
+function bar(p){  // inline progress bar for table cells (p in 0..1)
+  const pct=Math.round(p*100);
+  const cls=p>=0.995?"done":"";
+  return `<span class="cellbar ${cls}"><span class="cellbar-fill" style="width:${pct}%"></span><span class="cellbar-lbl">${pct}%</span></span>`;
+}
+
+/* ---- pivot table ---- */
+function renderPivot(reps,phases){
+  const pivot=wellsByPhaseMeters(reps);
+  const wells=[...new Set(reps.map(r=>r.pozo))].sort();
+  const rows=wells.map(w=>{
+    const row={pozo:w,_total:0};
+    for(const k of phases){const v=pivot[w+"\u0001"+k]||0;row[k]=v;row._total+=v;}
+    return row;
+  });
+  const cols=[{key:"pozo",label:"Pozo",render:r=>r.pozo}]
+    .concat(phases.map(p=>({key:p,label:phaseLabel(p),render:r=>r[p]?`<span class="num">${r[p].toFixed(1)}</span>`:`<span class="dim">–</span>`})))
+    .concat([{key:"_total",label:"Total",render:r=>`<strong class="num">${r._total.toFixed(1)}</strong>`}]);
+  renderSortableTable("pivotTable",cols,rows);
+}
+
+/* ---- validations panel ---- */
+function renderValidations(reps,rows,issues){
+  const body=document.getElementById("validBody");
+  let html="";
+  if(!state.selfTestAll.length){
+    html+=`<div class="note ok"><span class="ni">✓</span><div><strong>Self-test OK</strong> — Σ(Fases) = Total Semanal y sin pozos solapados.</div></div>`;
+  }else{
+    state.selfTestAll.forEach(s=>html+=`<div class="note err"><span class="ni">✕</span><div>${esc(s)}</div></div>`);
+  }
+  if(!issues.length&&!state.warningsAll.length){
+    html+=`<div class="note ok"><span class="ni">✓</span><div>Sin inconsistencias de profundidad.</div></div>`;
+  }
+  issues.forEach(s=>html+=`<div class="note warn"><span class="ni">⚠</span><div>${esc(s)}</div></div>`);
+  state.warningsAll.forEach(s=>html+=`<div class="note warn"><span class="ni">⚠</span><div>${esc(s)}</div></div>`);
+  const stats=`<div class="dim" style="margin-top:14px;font-size:12px">${reps.length} reportes · ${state.failures.length} mensajes no reconocidos · tolerancia ±${TOLERANCE_M} m</div>`;
+  body.innerHTML=html+stats;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
+
+/* ==========================================================================
+   SVG CHARTS — hand-built, minimalist, no dependencies
+   ========================================================================== */
+const tip=document.getElementById("tip");
+function showTip(html,x,y){tip.innerHTML=html;tip.style.left=(x+14)+"px";tip.style.top=(y+14)+"px";tip.classList.add("show");}
+function hideTip(){tip.classList.remove("show");}
+document.addEventListener("scroll",hideTip,true);
+
+function svgEl(w,h){return`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" role="img">`;}
+
+/* ---- stacked bar by phase (weekly) ---- */
+function renderStacked(rows,phases){
+  if(!rows.length){document.getElementById("stackedChart").innerHTML="";return;}
+  const W=Math.max(680,rows.length*72),H=300,ml=46,mr=12,mt=14,mb=44;
+  const cw=W-ml-mr,ch=H-mt-mb;
+  const maxTotal=Math.max(...rows.map(r=>r.total),1);
+  const ticks=5;
+  let g=svgEl(W,H);
+  // gridlines + y axis
+  for(let i=0;i<=ticks;i++){
+    const v=maxTotal*i/ticks,y=mt+ch-ch*i/ticks;
+    g+=`<line class="g" x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}"/>`;
+    g+=`<text class="ax" x="${ml-6}" y="${y+3}" text-anchor="end">${Math.round(v)}</text>`;
+  }
+  const bw=Math.min(46,cw/rows.length*0.62),slot=cw/rows.length;
+  rows.forEach((r,i)=>{
+    const x=ml+slot*i+(slot-bw)/2;let y0=mt+ch;
+    phases.forEach(p=>{
+      const v=r.phases[p]||0;if(!v)return;
+      const bh=ch*(v/maxTotal);
+      g+=`<rect class="bar" x="${x.toFixed(1)}" y="${(y0-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" fill="${phaseColor(p)}" data-t="${phaseLabel(p)}: ${v.toFixed(1)} m<br>${r.month_label} S${isoWeek(r.week_start)}"/>`;
+      y0-=bh;
+    });
+    g+=`<text class="ax" x="${(x+bw/2).toFixed(1)}" y="${H-mb+16}" text-anchor="middle">S${isoWeek(r.week_start)}</text>`;
+  });
+  g+=`<text class="ax" x="${ml}" y="${H-mb+34}">metros por semana</text>`;
+  g+="</svg>";
+  document.getElementById("stackedChart").innerHTML=g;
+  bindTips(document.getElementById("stackedChart"));
+}
+
+/* ---- cumulative line by phase ---- */
+function renderCumulative(rows,phases){
+  if(rows.length<2){document.getElementById("cumChart").innerHTML="";return;}
+  const W=Math.max(680,rows.length*72),H=260,ml=46,mr=12,mt=14,mb=34;
+  const cw=W-ml-mr,ch=H-mt-mb;
+  // cumulative per phase
+  const cum={};phases.forEach(p=>cum[p]=0);
+  const series=phases.map(p=>{const arr=[];rows.forEach(r=>{cum[p]+=(r.phases[p]||0);arr.push(cum[p]);});return{p,arr};});
+  const maxV=Math.max(...series.flatMap(s=>s.arr),1);
+  const ticks=4;let g=svgEl(W,H);
+  for(let i=0;i<=ticks;i++){const v=maxV*i/ticks,y=mt+ch-ch*i/ticks;
+    g+=`<line class="g" x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}"/><text class="ax" x="${ml-6}" y="${y+3}" text-anchor="end">${Math.round(v)}</text>`;}
+  const x=i=>ml+(rows.length<=1?0:cw*i/(rows.length-1));
+  series.forEach(s=>{
+    let d="";s.arr.forEach((v,i)=>{const px=x(i),py=mt+ch-ch*(v/maxV);d+=(i===0?"M":"L")+px.toFixed(1)+" "+py.toFixed(1)+" ";});
+    g+=`<path d="${d}" fill="none" stroke="${phaseColor(s.p)}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const last=s.arr[s.arr.length-1];const py=mt+ch-ch*(last/maxV);
+    g+=`<circle cx="${x(rows.length-1).toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="${phaseColor(s.p)}" data-t="${phaseLabel(s.p)}: ${last.toFixed(1)} m acum."/>`;
+  });
+  rows.forEach((r,i)=>{if(i%Math.ceil(rows.length/8)===0)g+=`<text class="ax" x="${x(i).toFixed(1)}" y="${H-mb+16}" text-anchor="middle">S${isoWeek(r.week_start)}</text>`;});
+  g+="</svg>";
+  document.getElementById("cumChart").innerHTML=g;
+  bindTips(document.getElementById("cumChart"));
+}
+
+/* ---- Gantt ---- */
+function renderGantt(reps){
+  if(!reps.length){document.getElementById("ganttChart").innerHTML="";return;}
+  const sums=summarizeWells(reps).filter(w=>w.first_date&&w.last_date);
+  if(!sums.length){document.getElementById("ganttChart").innerHTML="";renderLegend("legendGantt",[]);return;}
+  const minD=Math.min(...sums.map(w=>w.first_date.getTime())),maxD=Math.max(...sums.map(w=>w.last_date.getTime()));
+  const span=Math.max(maxD-minD,86400000);
+  const rowH=24,W=760,H=Math.max(160,sums.length*rowH+40),ml=90,mr=14,mt=10,mb=28,cw=W-ml-mr;
+  let g=svgEl(W,H);
+  const x=d=>ml+cw*((d.getTime()-minD)/span);
+  sums.forEach((w,i)=>{
+    const y=mt+i*rowH+4;
+    const phase=w.phases[w.phases.length-1];
+    g+=`<text class="ax" x="${ml-6}" y="${y+11}" text-anchor="end">${w.pozo}</text>`;
+    g+=`<rect class="bar" x="${x(w.first_date).toFixed(1)}" y="${y}" width="${Math.max(6,x(w.last_date)-x(w.first_date)).toFixed(1)}" height="14" rx="4" fill="${phaseColor(phase)}" data-t="${w.pozo}: ${w.total_m.toFixed(1)} m · ${phaseLabel(phase)}<br>${fmtDate(w.first_date)} → ${fmtDate(w.last_date)}"/>`;
+  });
+  // date axis ticks
+  const ticks=Math.min(6,Math.ceil(span/86400000));
+  for(let i=0;i<=ticks;i++){const d=new Date(minD+span*i/ticks);const px=x(d);
+    g+=`<line class="g" x1="${px.toFixed(1)}" y1="${mt}" x2="${px.toFixed(1)}" y2="${H-mb}"/><text class="ax" x="${px.toFixed(1)}" y="${H-mb+14}" text-anchor="middle">${fmtDate(d)}</text>`;}
+  g+="</svg>";
+  document.getElementById("ganttChart").innerHTML=g;
+  bindTips(document.getElementById("ganttChart"));
+  renderLegend("legendGantt",[...new Set(reps.map(r=>r.phase))]);
+}
+
+function renderLegend(id,phases){
+  document.getElementById(id).innerHTML=phases.map(p=>
+    `<div class="li"><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${phaseColor(p)}"></span>${phaseLabel(p)}</div>`).join("");
+}
+
+function bindTips(container){
+  container.querySelectorAll("[data-t]").forEach(el=>{
+    el.addEventListener("mousemove",e=>showTip(el.getAttribute("data-t"),e.clientX,e.clientY));
+    el.addEventListener("mouseleave",hideTip);
+  });
+}
+
+/* ==========================================================================
+   EXPORT — CSV + Markdown (same format as the Python CLI)
+   ========================================================================== */
+function download(name,content,type){
+  const blob=new Blob([content],{type:type||"text/plain;charset=utf-8"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
+}
+function buildCSV(rows,phases){
+  const headers=["Mes - Semana"].concat(phases.map(k=>phaseLabel(k)+" (m)"),["Pozo(s) en ejecución","Total Semanal (m)"]);
+  const lines=[headers.join(",")];
+  const esc=v=>/[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;
+  for(const r of rows){
+    const wk=isoWeek(r.week_start);const cells=[`${r.month_label} - S${String(wk).padStart(2,"0")}`];
+    for(const k of phases){const v=r.phases[k];cells.push(v?v.toFixed(2):"–");}
+    cells.push(r.active_wells.length?r.active_wells.join(", "):"–");
+    cells.push(r.total.toFixed(2));
+    lines.push(cells.map(esc).join(","));
+  }
+  for(const[label,monthly,total]of monthlyTotals(rows)){
+    const cells=[`TOTAL ${label.toUpperCase()}`];
+    for(const k of phases){const v=monthly[k];cells.push(v?v.toFixed(2):"–");}
+    cells.push("");cells.push(total.toFixed(2));
+    lines.push(cells.map(esc).join(","));
+  }
+  const totals={};let grand=0;
+  for(const k of phases){totals[k]=rows.reduce((s,r)=>s+(r.phases[k]||0),0);grand+=totals[k];}
+  const cells=["TOTAL ACUMULADO"];
+  for(const k of phases)cells.push(totals[k]?totals[k].toFixed(2):"–");
+  cells.push("");cells.push(grand.toFixed(2));
+  lines.push(cells.map(esc).join(","));
+  return lines.join("\n");
+}
+function buildMarkdown(rows,warnings,reportCount,phases){
+  const headers=["Mes - Semana"].concat(phases.map(k=>phaseLabel(k)+" (m)"),["Pozo(s) en ejecución","Total Semanal (m)"]);
+  const L=[];
+  L.push("# Resumen Semanal de Perforación");L.push("");
+  L.push(`_Reportes diarios procesados: **${reportCount}**_`);L.push("");
+  L.push("| "+headers.join(" | ")+" |");
+  L.push("|"+headers.map(()=>"---").join("|")+"|");
+  for(const r of rows){
+    const wk=isoWeek(r.week_start);const cells=[`${r.month_label} - S${String(wk).padStart(2,"0")}`];
+    for(const k of phases){const v=r.phases[k];cells.push(v?v.toFixed(2):"–");}
+    cells.push(r.active_wells.length?r.active_wells.join("<br>"):"–");
+    cells.push(r.total.toFixed(2));
+    L.push("| "+cells.join(" | ")+" |");
+  }
+  const totals={};let grand=0;
+  for(const k of phases){totals[k]=rows.reduce((s,r)=>s+(r.phases[k]||0),0);grand+=totals[k];}
+  let cells=["**TOTAL**"];
+  for(const k of phases)cells.push(totals[k]?`**${totals[k].toFixed(2)}**`:"–");
+  cells.push("");cells.push(`**${grand.toFixed(2)}**`);
+  L.push("| "+cells.join(" | ")+" |");L.push("");
+  const months=monthlyTotals(rows);
+  if([...new Set(rows.map(r=>r.month_label))].length>1){
+    L.push("## Totales por mes");L.push("");
+    L.push("| Mes | "+phases.map(phaseLabel).join(" | ")+" | Total (m) |");
+    L.push("|"+["---"].repeat(phases.length+2).join("|")+"|");
+    for(const[label,monthly,total]of months){
+      const c=[label];for(const k of phases){const v=monthly[k];c.push(v?v.toFixed(2):"–");}c.push(total.toFixed(2));
+      L.push("| "+c.join(" | ")+" |");
+    }
+    L.push("");
+  }
+  if(warnings.length){L.push("## ⚠️ Advertencias de validación");warnings.forEach(w=>L.push("- "+w));}
+  return L.join("\n")+"\n";
+}
+function exportData(){
+  const reps=filteredReports();
+  const[rows,warnings]=aggregate(reps);
+  const phases=state.phasesAll.filter(p=>state.activePhases.has(p));
+  download("avance_semanal.csv",buildCSV(rows,phases),"text/csv;charset=utf-8");
+  download("reporte.md",buildMarkdown(rows,warnings,reps.length,phases),"text/markdown;charset=utf-8");
+}
+
+/* ==========================================================================
+   WIRING
+   ========================================================================== */
+function initTheme(){
+  const saved=localStorage.getItem("theme")|| (matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
+  document.documentElement.setAttribute("data-theme",saved);
+  document.getElementById("btnTheme").textContent=saved==="dark"?"☀️":"🌙";
+}
+document.getElementById("btnTheme").onclick=()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const nx=cur==="dark"?"light":"dark";
+  document.documentElement.setAttribute("data-theme",nx);
+  localStorage.setItem("theme",nx);
+  document.getElementById("btnTheme").textContent=nx==="dark"?"☀️":"🌙";
+};
+
+document.getElementById("btnUpload").onclick=()=>document.getElementById("file").click();
+document.getElementById("file").onchange=e=>{if(e.target.files[0])loadChat(e.target.files[0]);};
+const dz=document.getElementById("dropzone");
+dz.onclick=()=>document.getElementById("file").click();
+["dragover","dragenter"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add("drag");}));
+["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("drag");}));
+dz.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f)loadChat(f);});
+
+document.getElementById("wellSel").onchange=e=>{state.wellFilter=e.target.value;render();};
+document.getElementById("dateFrom").onchange=e=>{state.dateFrom=e.target.value?makeDateFromISO(e.target.value):null;render();};
+document.getElementById("dateTo").onchange=e=>{state.dateTo=e.target.value?makeDateFromISO(e.target.value):null;render();};
+document.getElementById("btnReset").onclick=()=>{
+  state.activePhases=new Set(state.phasesAll);state.wellFilter="";
+  state.dateFrom=null;state.dateTo=null;
+  document.getElementById("wellSel").value="";document.getElementById("dateFrom").value="";document.getElementById("dateTo").value="";
+  buildFilters();render();
+};
+document.getElementById("btnCsv").onclick=exportData;
+document.getElementById("btnMd").onclick=exportData;
+
+document.querySelectorAll(".tab").forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    document.querySelectorAll(".tabpane").forEach(p=>p.classList.add("hidden"));
+    document.getElementById("tab-"+t.dataset.tab).classList.remove("hidden");
+  };
+});
+
+initTheme();
+</script>
+</body>
+</html>
