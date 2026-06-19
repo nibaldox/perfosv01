@@ -216,16 +216,16 @@ line.g{stroke:var(--border);stroke-width:1}
 .legend .li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2)}
 
 /* ---- daily activity heatmap ---- */
-.heat-wrap{display:flex;gap:5px;align-items:flex-start}
-.heat-wdcol{display:flex;flex-direction:column;gap:3px;padding-top:0}
-.heat-wdcol .hwd{height:13px;line-height:13px;font-size:9px;color:var(--text-3);width:9px}
-.heat{display:flex;gap:3px;overflow-x:auto;padding-bottom:6px}
-.heat-col{display:flex;flex-direction:column;gap:3px}
-.hc{width:13px;height:13px;border-radius:3px;display:block;cursor:pointer}
+.heat-wrap{--hc:16px;--hg:4px;display:flex;gap:7px;align-items:flex-start}
+.heat-wdcol{display:flex;flex-direction:column;gap:var(--hg)}
+.heat-wdcol .hwd{height:var(--hc);line-height:var(--hc);font-size:10px;color:var(--text-3);width:11px}
+.heat{display:flex;gap:var(--hg);overflow-x:auto;padding-bottom:6px}
+.heat-col{display:flex;flex-direction:column;gap:var(--hg)}
+.hc{width:var(--hc);height:var(--hc);border-radius:4px;display:block;cursor:pointer}
 .lv0{background:var(--h0)}
 .lv1{background:var(--h1)}.lv2{background:var(--h2)}.lv3{background:var(--h3)}.lv4{background:var(--h4)}
-.heat-leg{display:flex;align-items:center;gap:4px;margin-top:8px;font-size:11px}
-.heat-leg .hc{width:11px;height:11px;cursor:default}
+.heat-leg{display:flex;align-items:center;gap:5px;margin-top:10px;font-size:11px}
+.heat-leg .hc{width:13px;height:13px;cursor:default}
 
 /* ---------- Validations ---------- */
 .note{display:flex;gap:10px;padding:11px 14px;border-radius:9px;font-size:13px;margin-bottom:8px;border:1px solid}
@@ -1136,6 +1136,13 @@ function renderHeatmap(reps){
   const start=weekStart(new Date(minT));
   const endD=new Date(maxT);
   endD.setDate(endD.getDate()+(6-((endD.getDay()+6)%7)));
+  // count weeks and size cells to fill available width
+  let numWeeks=0;
+  for(let d=new Date(start);d<=endD;d.setDate(d.getDate()+7))numWeeks++;
+  const avail=Math.max(0,box.clientWidth-24);   // minus weekday-label column + buffer
+  let cell=Math.floor((avail-4*(numWeeks-1))/numWeeks);
+  cell=Math.max(16,Math.min(34,isNaN(cell)?16:cell));
+  box.style.setProperty("--hc",cell+"px");
   const WD=["L","M","X","J","V","S","D"];
   let wd="";
   WD.forEach(d=>{wd+=`<span class="hwd">${d}</span>`;});
@@ -1548,10 +1555,18 @@ document.querySelectorAll(".tab").forEach(t=>{
     t.classList.add("active");
     document.querySelectorAll(".tabpane").forEach(p=>p.classList.add("hidden"));
     document.getElementById("tab-"+t.dataset.tab).classList.remove("hidden");
+    if(t.dataset.tab==="weekly")renderHeatmap(filteredReports());
   };
 });
 
 initTheme();
+let _rzt;
+window.addEventListener("resize",()=>{
+  if(document.getElementById("app").classList.contains("hidden"))return;
+  if(document.getElementById("tab-weekly").classList.contains("hidden"))return;
+  clearTimeout(_rzt);
+  _rzt=setTimeout(()=>renderHeatmap(filteredReports()),150);
+});
 </script>
 </body>
 </html>
