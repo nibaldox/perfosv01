@@ -87,6 +87,12 @@ main{max-width:1320px;margin:0 auto;padding:24px}
 .chip:hover{border-color:var(--text-3)}
 .chip.on{color:#fff;border-color:transparent;font-weight:500}
 .chip .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:14px}
+.segbtn{padding:6px 14px;font-size:12px;font-weight:500;background:var(--surface);border:none;cursor:pointer;
+  color:var(--text-2);font-family:inherit;border-right:1px solid var(--border);transition:.13s}
+.segbtn:last-child{border-right:none}
+.segbtn:hover{background:var(--surface-2)}
+.segbtn.active{background:var(--accent);color:#fff}
 
 /* ---------- KPIs ---------- */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px}
@@ -259,6 +265,11 @@ footer.app{max-width:1320px;margin:0 auto;padding:0 24px 40px;color:var(--text-3
           <div class="legend" id="legendBars"></div>
         </div>
         <div class="card-body" style="border-top:1px solid var(--border)">
+          <div class="seg" id="periodSeg">
+            <button class="segbtn active" data-period="week">Semanal</button>
+            <button class="segbtn" data-period="month">Mensual</button>
+            <button class="segbtn" data-period="day">Diario</button>
+          </div>
           <div class="tbl-wrap">
             <table class="data" id="weeklyTable"></table>
           </div>
@@ -751,7 +762,7 @@ function selfTest(reports,rows){
    ========================================================================== */
 const state={rawText:null,reportsAll:[],failures:[],rowsAll:[],warningsAll:[],issuesAll:[],
   selfTestAll:[],phasesAll:[],wellSummaries:[],pivotAll:{},
-  activePhases:new Set(),wellFilter:"",dateFrom:null,dateTo:null};
+  activePhases:new Set(),wellFilter:"",dateFrom:null,dateTo:null,period:"week"};
 
 /* ---- ZIP extraction (stored + deflate via DecompressionStream) ---- */
 async function readZip(file){
@@ -865,7 +876,7 @@ function render(){
   renderKpis(reps,rows,sums);
   renderStacked(rows,present);
   renderLegend("legendBars",present);
-  renderWeeklyTable(rows,phases);
+  renderWeeklyTable(reps,rows,phases);
   renderCumulative(rows,present);
   renderDepth(reps,sums);
   renderShift(reps);
@@ -1011,29 +1022,37 @@ function renderKpis(reps,rows,sums){
 }
 function kpi(label,val,sub){return`<div class="kpi"><div class="label">${label}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;}
 
-/* ---- weekly table ---- */
-function renderWeeklyTable(rows,phases){
-  const headers=["Mes - Semana"].concat(phases.map(phaseLabel),["Pozo(s) en ejecución","Total (m)"]);
+/* ---- weekly / period table ---- */
+function renderWeeklyTable(reps,rows,phases){
+  const isWeek=state.period==="week";
+  let dataRows,subtotals=[];
+  if(isWeek){
+    dataRows=rows.map(r=>({label:`${r.month_label} - S${String(isoWeek(r.week_start)).padStart(2,"0")}`,
+      phases:r.phases,wells:r.active_wells.map(formatWell).join(" "),total:r.total}));
+    subtotals=monthlyTotals(rows).map(([label,monthly,total])=>({label:"TOTAL "+label.toUpperCase(),phases:monthly,total}));
+  }else{
+    const prows=aggregateByPeriod(reps,state.period);
+    dataRows=prows.map(r=>({label:r.period_label,phases:r.phases,
+      wells:r.active_wells.length?r.active_wells.join(", "):"",total:r.total}));
+  }
+  const firstHdr=isWeek?"Mes - Semana":"Periodo";
+  const headers=[firstHdr].concat(phases.map(phaseLabel),["Pozo(s) en ejecución","Total (m)"]);
   let html="<thead><tr>"+headers.map(h=>`<th>${h}</th>`).join("")+"</tr></thead><tbody>";
-  for(const r of rows){
-    const wk=isoWeek(r.week_start);
-    const cells=[`${r.month_label} - S${String(wk).padStart(2,"0")}`];
+  for(const r of dataRows){
+    const cells=[r.label];
     for(const k of phases){const v=r.phases[k];cells.push(v?v.toFixed(2):`<span class="dim">–</span>`);}
-    cells.push(r.active_wells.length?r.active_wells.map(formatWell).join(" "):`<span class="dim">–</span>`);
+    cells.push(r.wells||`<span class="dim">–</span>`);
     cells.push(`<span class="num">${r.total.toFixed(2)}</span>`);
     html+="<tr>"+cells.map(c=>`<td>${c}</td>`).join("")+"</tr>";
   }
-  // monthly subtotals
-  const mt=monthlyTotals(rows);
-  for(const[label,monthly,total]of mt){
-    const cells=[`<strong>TOTAL ${label.toUpperCase()}</strong>`];
-    for(const k of phases){const v=monthly[k];cells.push(v?v.toFixed(2):`<span class="dim">–</span>`);}
-    cells.push("");cells.push(`<span class="num">${total.toFixed(2)}</span>`);
+  for(const s of subtotals){
+    const cells=[`<strong>${s.label}</strong>`];
+    for(const k of phases){const v=s.phases[k];cells.push(v?v.toFixed(2):`<span class="dim">–</span>`);}
+    cells.push("");cells.push(`<span class="num">${s.total.toFixed(2)}</span>`);
     html+='<tr class="total">'+cells.map(c=>`<td>${c}</td>`).join("")+"</tr>";
   }
-  // grand total
   const totals={};let grand=0;
-  for(const k of phases){totals[k]=rows.reduce((s,r)=>s+(r.phases[k]||0),0);grand+=totals[k];}
+  for(const k of phases){totals[k]=dataRows.reduce((s,r)=>s+(r.phases[k]||0),0);grand+=totals[k];}
   let cells=["<strong>TOTAL</strong>"];
   for(const k of phases)cells.push(totals[k]?`<strong>${totals[k].toFixed(2)}</strong>`:`<span class="dim">–</span>`);
   cells.push("");cells.push(`<strong class="num">${grand.toFixed(2)}</strong>`);
@@ -1360,10 +1379,18 @@ document.getElementById("dateFrom").onchange=e=>{state.dateFrom=e.target.value?m
 document.getElementById("dateTo").onchange=e=>{state.dateTo=e.target.value?makeDateFromISO(e.target.value):null;render();};
 document.getElementById("btnReset").onclick=()=>{
   state.activePhases=new Set(state.phasesAll);state.wellFilter="";
-  state.dateFrom=null;state.dateTo=null;
+  state.dateFrom=null;state.dateTo=null;state.period="week";
   document.getElementById("wellSel").value="";document.getElementById("dateFrom").value="";document.getElementById("dateTo").value="";
+  document.querySelectorAll("#periodSeg .segbtn").forEach(x=>x.classList.toggle("active",x.dataset.period==="week"));
   buildFilters();render();
 };
+document.querySelectorAll("#periodSeg .segbtn").forEach(b=>{
+  b.onclick=()=>{
+    state.period=b.dataset.period;
+    document.querySelectorAll("#periodSeg .segbtn").forEach(x=>x.classList.toggle("active",x===b));
+    render();
+  };
+});
 document.getElementById("btnCsv").onclick=exportData;
 document.getElementById("btnMd").onclick=exportData;
 
