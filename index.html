@@ -117,6 +117,7 @@ table.data thead th{font-size:11px;font-weight:600;text-transform:uppercase;lett
 table.data tbody tr:hover{background:var(--surface-2)}
 table.data tr.total td,table.data tfoot td{font-weight:700;background:var(--surface-2);border-top:2px solid var(--border-strong)}
 table.data td.em,.num{font-variant-numeric:tabular-nums}
+td.obs{max-width:360px;white-space:normal;color:var(--text-2)}
 .dim{color:var(--text-3)}
 .clickable{cursor:pointer;color:var(--accent)}
 .clickable:hover{text-decoration:underline}
@@ -275,6 +276,12 @@ footer.app{max-width:1320px;margin:0 auto;padding:0 24px 40px;color:var(--text-3
           </div>
           <div class="chart" id="depthChart"></div>
           <div class="legend" id="depthLegend"></div>
+        </div>
+        <div class="card-body hidden" id="shiftWrap" style="border-top:1px solid var(--border)">
+          <div class="card-head" style="padding:0 0 14px;border:none;margin:0">
+            <h3 id="shiftHead">Detalle por turno</h3>
+          </div>
+          <div class="tbl-wrap"><table class="data" id="shiftTable"></table></div>
         </div>
         <div class="card-body" style="border-top:1px solid var(--border)">
           <div class="card-head" style="padding:0 0 14px;border:none;margin:0">
@@ -860,6 +867,7 @@ function render(){
   renderWeeklyTable(rows,phases);
   renderCumulative(rows,present);
   renderDepth(reps,sums);
+  renderShift(reps);
   renderWellTable(reps,sums);
   renderPivot(reps,phases);
   renderGantt(reps);
@@ -921,6 +929,29 @@ function renderDepth(reps,sums){
   bindTips(box);
   document.getElementById("depthLegend").innerHTML=series.map(s=>
     `<div class="li"><span style="display:inline-block;width:14px;height:3px;background:${s.color};vertical-align:middle"></span> ${s.pozo}</div>`).join("");
+}
+
+/* ---- shift-by-shift detail table (selected well) ---- */
+function renderShift(reps){
+  const wrap=document.getElementById("shiftWrap");
+  if(!state.wellFilter){wrap.classList.add("hidden");return;}
+  const wr=reps.filter(r=>r.pozo===state.wellFilter)
+    .slice().sort((a,b)=>a.report_date-b.report_date||(a.shift<b.shift?-1:1));
+  if(!wr.length){wrap.classList.add("hidden");return;}
+  wrap.classList.remove("hidden");
+  document.getElementById("shiftHead").textContent="Detalle por turno — "+state.wellFilter+" ("+wr.length+" reportes)";
+  const headers=["Fecha","Turno","Inicio","Fondo","Avance","Casing","Observaciones"];
+  let html="<thead><tr>"+headers.map(h=>`<th>${h}</th>`).join("")+"</tr></thead><tbody>";
+  for(const r of wr){
+    html+=`<tr><td>${fmtDate(r.report_date)}</td><td>${r.shift}</td>`+
+      `<td class="num">${r.inicio!==null?r.inicio.toFixed(1):"–"}</td>`+
+      `<td class="num">${r.fondo!==null?r.fondo.toFixed(1):"–"}</td>`+
+      `<td class="num">${r.avance!==null?r.avance.toFixed(2):"–"}</td>`+
+      `<td class="num">${r.casing_hwt!==null?r.casing_hwt.toFixed(1):"–"}</td>`+
+      `<td class="dim obs">${esc(r.observaciones||"")}</td></tr>`;
+  }
+  html+="</tbody>";
+  document.getElementById("shiftTable").innerHTML=html;
 }
 
 /* ---- campaign progress card ---- */
