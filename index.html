@@ -9,24 +9,28 @@
    Design system — modern, minimalist. Light + dark via [data-theme].
    ======================================================================== */
 :root{
-  --bg:#f7f7f8; --surface:#ffffff; --surface-2:#fafafa;
-  --border:#e7e7ea; --border-strong:#d4d4d8;
-  --text:#18181b; --text-2:#52525b; --text-3:#a1a1aa;
-  --accent:#4f46e5; --accent-soft:#eef2ff;
-  --danger:#dc2626; --danger-soft:#fef2f2; --warn:#b45309; --warn-soft:#fffbeb;
-  --ok:#059669; --ok-soft:#ecfdf5;
-  --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);
+  /* Light: warm light-gray base, dark grays + autumn browns for data */
+  --bg:#f4f3f0; --surface:#fbfaf8; --surface-2:#efece7;
+  --border:#e2ddd5; --border-strong:#cbc4b9;
+  --text:#2b2724; --text-2:#6b635a; --text-3:#9a9288;
+  --accent:#8a5a2b; --accent-2:#6b3f12; --accent-soft:#f0e6da;
+  --danger:#9a3412; --danger-soft:#fbeae0; --warn:#92400e; --warn-soft:#f5ead8;
+  --ok:#4d7c3f; --ok-soft:#e8efe2;
+  --h0:#ece9e4; --h1:#dcc9a4; --h2:#c79e60; --h3:#9a6a26; --h4:#6b3f12;
+  --shadow:0 1px 2px rgba(60,40,20,.05),0 4px 16px rgba(60,40,20,.05);
   --radius:14px; --radius-sm:9px;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 [data-theme="dark"]{
-  --bg:#0c0c0e; --surface:#161618; --surface-2:#1c1c1f;
-  --border:#27272a; --border-strong:#3f3f46;
-  --text:#fafafa; --text-2:#a1a1aa; --text-3:#71717a;
-  --accent:#818cf8; --accent-soft:#1e1b3a;
-  --danger:#f87171; --danger-soft:#2a1212; --warn:#fbbf24; --warn-soft:#2a1f08;
-  --ok:#34d399; --ok-soft:#0a2820;
+  /* Dark: matte black base, light grays + light taupe/coffee for data */
+  --bg:#0a0a0a; --surface:#161412; --surface-2:#211e1a;
+  --border:#2e2a25; --border-strong:#4a443c;
+  --text:#ece9e4; --text-2:#b3aca2; --text-3:#837b70;
+  --accent:#c9a36a; --accent-2:#8a5a2b; --accent-soft:#2a2117;
+  --danger:#e8825a; --danger-soft:#2c1a12; --warn:#d8b070; --warn-soft:#2a2113;
+  --ok:#9bb87a; --ok-soft:#16210e;
+  --h0:#1f1c17; --h1:#3c2f1b; --h2:#6e5230; --h3:#a87f44; --h4:#dcb574;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -43,7 +47,7 @@ header.app{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--s
   backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
 .header-inner{max-width:1320px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:16px;letter-spacing:-.01em;white-space:nowrap}
-.brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7c3aed);
+.brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
   display:grid;place-items:center;color:#fff;font-size:18px;flex-shrink:0}
 .header-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border-strong);background:var(--surface);
@@ -135,7 +139,7 @@ table.data th.sortable:hover{color:var(--text)}
 .camp-global{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:18px}
 .camp-bar{position:relative;flex:1;min-width:240px;height:26px;background:var(--surface-2);
   border:1px solid var(--border);border-radius:13px;overflow:hidden}
-.camp-fill{height:100%;background:linear-gradient(90deg,var(--accent),#7c3aed);border-radius:13px;transition:width .5s}
+.camp-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:13px;transition:width .5s}
 .camp-lbl{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:13px;
   color:var(--text);text-shadow:0 0 4px var(--surface)}
 .camp-meta{font-size:13px;color:var(--text-2);white-space:nowrap}
@@ -351,12 +355,18 @@ const FINISH_KEYWORDS=["finaliz","pozo finalizado","desarme","se inicia desarme"
   "se entrega en traslado","se entrega en trasl","retira totalidad","sale con dificultad",
   "movimiento de equipos","pozo en traslado"];
 
-// Muted, color-blind-friendly palette per phase.
-const PHASE_COLORS={
-  FASE_8:"#5b8def",FASE_8S:"#14b8a6",FASE_9:"#f59e0b",FASE_12:"#8b5cf6",
-  FASE_13:"#ec4899",FASE_14:"#10b981",FASE_15:"#ef4444"
-};
-const COLOR_FALLBACK="#94a3b8";
+// Earthy executive palette per theme: grays + autumn browns (light) / light
+// grays + taupe/coffee (dark). Enough lightness spread to separate phases.
+const PHASE_LIGHT={
+  FASE_8:"#374151",FASE_8S:"#92400e",FASE_9:"#6b7280",FASE_12:"#b45309",
+  FASE_13:"#57534e",FASE_14:"#7c2d12",FASE_15:"#854d0e"};
+const PHASE_DARK={
+  FASE_8:"#c9ccd1",FASE_8S:"#d8a165",FASE_9:"#9aa0a8",FASE_12:"#e0b070",
+  FASE_13:"#b3aca2",FASE_14:"#cf8a5e",FASE_15:"#c4a574"};
+function phaseColor(k){
+  const dark=document.documentElement.getAttribute("data-theme")==="dark";
+  return (dark?PHASE_DARK:PHASE_LIGHT)[k]||(dark?"#837b70":"#9a9288");
+}
 
 /* ---- number parsing (parse_number) ---- */
 function parseNumber(raw){
@@ -417,7 +427,6 @@ function phaseLabel(k){
   if(k.startsWith("FASE_"))return"FASE "+k.slice(5);
   return k.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
 }
-function phaseColor(k){return PHASE_COLORS[k]||COLOR_FALLBACK;}
 
 function presentPhases(reports){
   const found=new Set(reports.map(r=>r.phase));
@@ -901,7 +910,7 @@ function renderDepth(reps,sums){
     const wr=(byWell.get(w)||[]).slice().sort((a,b)=>a.report_date-b.report_date);
     if(!wr.length)continue;
     const sum=sums.find(s=>s.pozo===w);
-    series.push({pozo:w,color:sum?phaseColor(sum.phases[sum.phases.length-1]):COLOR_FALLBACK,
+    series.push({pozo:w,color:sum?phaseColor(sum.phases[sum.phases.length-1]):phaseColor("FASE_14"),
       points:wr,programado:sum?sum.programado:0});
   }
   if(!series.length){box.innerHTML="";document.getElementById("depthLegend").innerHTML="";return;}
@@ -1364,6 +1373,7 @@ document.getElementById("btnTheme").onclick=()=>{
   document.documentElement.setAttribute("data-theme",nx);
   localStorage.setItem("theme",nx);
   document.getElementById("btnTheme").textContent=nx==="dark"?"☀️":"🌙";
+  if(!document.getElementById("app").classList.contains("hidden"))render();
 };
 
 document.getElementById("btnUpload").onclick=()=>document.getElementById("file").click();
